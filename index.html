@@ -154,6 +154,11 @@ html,body{width:100%;height:100%;overflow:hidden;background:#06070f;font-family:
 .tbtn:hover{border-color:#00d4ff88;background:rgba(0,40,70,.5);}
 .tbtn.sel{border-color:#00d4ff;background:rgba(0,55,100,.4);}
 .tbtn.unavail{opacity:.32;pointer-events:none;}
+.tbtn.premium-btn{border-color:rgba(255,100,0,.35);background:rgba(40,10,0,.6);}
+.tbtn.premium-btn:hover{border-color:#ff6600;background:rgba(60,20,0,.6);}
+.tbtn.premium-btn.sel{border-color:#ff6600;background:rgba(80,30,0,.6);}
+.premium-tower.si{border-color:rgba(255,68,0,.25)!important;background:rgba(30,8,0,.5)!important;}
+.premium-tower.si:hover:not(.maxed){border-color:#ff6600!important;background:rgba(50,15,0,.6)!important;}
 .tn{font-family:'Exo 2',sans-serif;font-weight:700;font-size:10px;display:flex;align-items:center;gap:3px;}
 .tc{color:#ffd700;font-size:9px;margin-top:1px;}
 .ts{color:#1e3050;font-size:8px;margin-top:1px;line-height:1.3;}
@@ -456,6 +461,15 @@ const TDEFS={
   tesla:  {name:'Tesla',  icon:'🌩', col:'#bf5fff',ul:7, cost:160,dmg:55, rng:3.5,rte:1.5,splR:1.5,slw:0.3},
   inferno:{name:'Inferno',icon:'🔥',col:'#ff3d5a',ul:9, cost:200,dmg:40, rng:3.0,rte:3.0,splR:0.9,slw:0},
   void:   {name:'Void',   icon:'🌀',col:'#7744ff',ul:13,cost:350,dmg:250,rng:5.5,rte:0.3,splR:2.2,slw:0.4},
+  // ── TOKEN-EXCLUSIVE TOWERS ──
+  phantom:{name:'Phantom', icon:'👻',col:'#aaffdd',ul:1,cost:200,dmg:70, rng:6.5,rte:1.2,splR:0,  slw:0,  tokenOnly:true,tokenCost:40,
+           special:'Pierce beam — hits ALL enemies in a line. Ignores armour.'},
+  omega:  {name:'Omega',   icon:'☢️', col:'#ff5500',ul:1,cost:500,dmg:500,rng:6.0,rte:0.35,splR:3.0,slw:0, tokenOnly:true,tokenCost:80,
+           special:'Nuclear blast — extreme AoE, ignores all armour, melts bosses.'},
+  warden: {name:'Warden',  icon:'🪬',col:'#ffcc44',ul:1,cost:250,dmg:0,  rng:3.5,rte:0,  splR:0,  slw:0,  tokenOnly:true,tokenCost:55,
+           special:'Buffs all nearby towers +25% dmg & +15% range. Does not attack.'},
+  chrono: {name:'Chrono',  icon:'⏱',col:'#44ddff',ul:1,cost:300,dmg:0,  rng:4.0,rte:0,  splR:0,  slw:0,  tokenOnly:true,tokenCost:65,
+           special:'Time-slow field — slows ALL enemies in range by 75%. No attack.'},
 };
 const TUPG={
   cannon: [{c:80, dmg:50, rng:3.2,rte:1.1,n:'Heavy Shell'},{c:130,dmg:85, rng:3.5,rte:1.3,n:'Siege Cannon'},{c:220,dmg:160,rng:4.0,rte:1.5,n:'MEGA CANNON'}],
@@ -466,6 +480,10 @@ const TUPG={
   tesla:  [{c:180,dmg:90, rng:4.0,rte:1.7,n:'Overload'},  {c:270,dmg:160,rng:4.5,rte:2.0,n:'Thunderstorm'},{c:440,dmg:290,rng:5.5,rte:2.5,n:'ZEUS PROTOCOL'}],
   inferno:[{c:220,dmg:65, rng:3.2,rte:3.5,n:'Napalm'},    {c:330,dmg:105,rng:3.5,rte:4.2,n:'Hellfire'},    {c:520,dmg:185,rng:4.5,rte:5.0,n:'DRAGON WRATH'}],
   void:   [{c:420,dmg:420,rng:6.0,rte:.33,n:'Dark Matter'},{c:650,dmg:720,rng:6.5,rte:.38,n:'Event Horizon'},{c:950,dmg:1400,rng:7.5,rte:.44,n:'APOCALYPSE'}],
+  phantom:[{c:220,dmg:110,rng:7.0,rte:1.4,n:'Phase Shift'},{c:360,dmg:180,rng:7.5,rte:1.7,n:'Wraith Form'},{c:560,dmg:300,rng:8.5,rte:2.2,n:'SPECTRAL DOOM'}],
+  omega:  [{c:600,dmg:800,rng:6.5,rte:.40,n:'Fission'},    {c:900,dmg:1300,rng:7.0,rte:.45,n:'Fusion'},     {c:1400,dmg:2400,rng:8.0,rte:.52,n:'SINGULARITY'}],
+  warden: [{c:280,dmg:0,rng:4.0,rte:0,n:'Iron Aura'},      {c:440,dmg:0,rng:4.5,rte:0,n:'Bulwark'},         {c:680,dmg:0,rng:5.5,rte:0,n:'DIVINE SHIELD'}],
+  chrono: [{c:320,dmg:0,rng:4.5,rte:0,n:'Time Dilation'},  {c:500,dmg:0,rng:5.0,rte:0,n:'Slow Reality'},    {c:780,dmg:0,rng:6.0,rte:0,n:'TEMPORAL LOCK'}],
 };
 
 // ══════════════════════════════════════
@@ -549,7 +567,7 @@ function mkLevel(i){
 // ══════════════════════════════════════
 //  SAVE & DAILY QUESTS
 // ══════════════════════════════════════
-let save={ul:1,hi:0,ts:0,stars:{},tokens:0,shopLevels:{},questProgress:{},questClaimed:{},questDate:''};
+let save={ul:1,hi:0,ts:0,stars:{},tokens:0,shopLevels:{},questProgress:{},questClaimed:{},questDate:'',unlockedTowers:{}};
 try{const r=localStorage.getItem('td2_v5');if(r)save={...save,...JSON.parse(r)};}catch(e){}
 function writeSave(){try{localStorage.setItem('td2_v5',JSON.stringify(save));}catch(e){}}
 const LEVELS=Array.from({length:30},(_,i)=>mkLevel(i));
@@ -645,6 +663,13 @@ let runKills=0,runSells=0,runUpgrades=0,startLives_=0;
 function openShop(){
   document.getElementById('shop-tok-count').textContent=save.tokens;
   const g=document.getElementById('shop-grid');g.innerHTML='';
+
+  // ── STAT UPGRADES ──
+  const upgradeHeader=document.createElement('div');
+  upgradeHeader.style.cssText='grid-column:1/-1;font-family:"Exo 2",sans-serif;font-size:9px;font-weight:700;color:#5a4a28;letter-spacing:3px;padding-bottom:6px;border-bottom:1px solid rgba(180,140,60,.15);margin-bottom:2px;';
+  upgradeHeader.textContent='PERMANENT STAT UPGRADES';
+  g.appendChild(upgradeHeader);
+
   SHOP_UPGRADES.forEach(u=>{
     const lv=save.shopLevels[u.id]||0,maxed=lv>=u.max;
     const cost=shopCost(u);
@@ -656,7 +681,44 @@ function openShop(){
     if(!maxed)div.onclick=()=>buyShop(u.id);
     g.appendChild(div);
   });
+
+  // ── PREMIUM TOWER UNLOCKS ──
+  const towerHeader=document.createElement('div');
+  towerHeader.style.cssText='grid-column:1/-1;font-family:"Exo 2",sans-serif;font-size:9px;font-weight:700;color:#cc4422;letter-spacing:3px;padding:10px 0 6px;border-bottom:1px solid rgba(255,68,0,.2);margin-top:4px;';
+  towerHeader.innerHTML='<span style="color:#ff4400">☢</span> EXCLUSIVE TOWERS — UNOBTAINABLE IN GAME';
+  g.appendChild(towerHeader);
+
+  const premiumTowers=Object.entries(TDEFS).filter(([,d])=>d.tokenOnly);
+  premiumTowers.forEach(([key,def])=>{
+    const owned=save.unlockedTowers[key];
+    const div=document.createElement('div');div.className='si premium-tower'+(owned?' maxed':'');
+    div.style.cssText=owned
+      ? 'border-color:rgba(255,68,0,.2);background:rgba(255,68,0,.03);'
+      : 'border-color:rgba(255,68,0,.25);background:rgba(255,68,0,.04);cursor:pointer;';
+    div.innerHTML=
+      `<div class="si-top"><span class="si-ico">${def.icon}</span><span class="si-nm" style="color:${def.col}">${def.name}</span></div>`+
+      `<div class="si-dsc" style="color:#664433">${def.special}</div>`+
+      `<div class="si-dsc">DMG ${def.dmg} · RNG ${def.rng} · ${def.rte}/s · Cost ${def.cost}💰 in-game</div>`+
+      `<div class="si-foot">
+        <span class="si-cost" style="color:${owned?'#00ff88':'#ff6600'}">${owned?'✓ OWNED':def.tokenCost+'🪙 — UNLOCK'}</span>
+        <span style="font-size:8px;color:#442211;font-family:'Exo 2',sans-serif;letter-spacing:1px">EXCLUSIVE</span>
+      </div>`;
+    if(!owned)div.onclick=()=>buyTower(key);
+    g.appendChild(div);
+  });
+
   document.getElementById('shop-modal').classList.add('show');
+}
+
+function buyTower(key){
+  const def=TDEFS[key];
+  if(!def||!def.tokenOnly)return;
+  if(save.unlockedTowers[key]){notify('Already owned!','#ff3d5a');return;}
+  if(save.tokens<def.tokenCost){notify(`Need ${def.tokenCost}🪙 — not enough tokens!`,'#ff3d5a');return;}
+  save.tokens-=def.tokenCost;
+  save.unlockedTowers[key]=true;
+  writeSave();openShop();
+  notify(`${def.icon} ${def.name} UNLOCKED! Place it in any level.`,'#ff6600');
 }
 function closeShop(){document.getElementById('shop-modal').classList.remove('show');}
 
@@ -1179,14 +1241,17 @@ function synergyMult(tw){return getSynergy(tw)?1.3:1;}
 function buildSidebar(){
   const list=document.getElementById('tlist');list.innerHTML='';
   Object.entries(TDEFS).forEach(([key,def])=>{
+    // Token-only towers: hide if not unlocked; show locked state if unlocked but token-bought
+    if(def.tokenOnly&&!save.unlockedTowers[key])return;
     const avail=LEVELS[curLv].n>=def.ul;
     const btn=document.createElement('div');
-    btn.className='tbtn'+(key===selType?' sel':'')+(avail?'':' unavail');
+    btn.className='tbtn'+(key===selType?' sel':'')+(avail?'':' unavail')+(def.tokenOnly?' premium-btn':'');
     btn.dataset.key=key;
-    const dmg=Math.round(def.dmg*SBONUSES.dmgMult());
-    btn.innerHTML=`<div class="tn"><span style="color:${def.col}">${def.icon}</span>${def.name}</div>`+
+    const dmg=def.dmg>0?Math.round(def.dmg*SBONUSES.dmgMult()):0;
+    const isPassive=def.ttype==='warden'||key==='warden'||key==='chrono';
+    btn.innerHTML=`<div class="tn"><span style="color:${def.col}">${def.icon}</span>${def.name}${def.tokenOnly?` <span style="font-size:7px;color:#ff6600;font-family:'Exo 2',sans-serif">EXCL</span>`:''}</div>`+
       `<div class="tc">💰 ${def.cost}</div>`+
-      `<div class="ts">D:${dmg} R:${def.rng} ${def.rte}/s</div>`+
+      `<div class="ts">${dmg>0?`D:${dmg} `:''}R:${def.rng}${def.rte>0?` ${def.rte}/s`:' PASSIVE'}</div>`+
       (avail?'':`<span class="tlk">🔒 Lv${def.ul}</span>`);
     if(avail)btn.onclick=()=>{selType=key;ttClose();document.querySelectorAll('.tbtn').forEach(b=>b.classList.toggle('sel',b.dataset.key===key));};
     list.appendChild(btn);
@@ -1344,12 +1409,33 @@ function update(dt){
     if(en.pathIdx>=(path.length||PATH.length)){lives=Math.max(0,lives-en.liveCost);en.dead=true;shakeT=.25;updateHUD();if(lives<=0){endGame();return;}}
   }
 
+  // ── Warden: buff nearby towers passively ──
   for(const tw of towers){
+    if(tw.ttype==='warden'){
+      const rng=tw.rng*CELL*SBONUSES.rngMult();
+      tw.wardenBuffed=towers.filter(o=>o!==tw&&o.ttype!=='warden'&&o.ttype!=='chrono'&&Math.hypot(o.x-tw.x,o.y-tw.y)<=rng);
+    } else { tw.wardenBuffed=undefined; }
+  }
+  // ── Chrono: slow all enemies in range passively ──
+  for(const tw of towers){
+    if(tw.ttype!=='chrono')continue;
+    const rng=tw.rng*CELL*SBONUSES.rngMult();
+    const slwAmt=0.75+(tw.upgradeLevel>=3?0.12:tw.upgradeLevel>=2?0.07:tw.upgradeLevel>=1?0.04:0);
+    for(const en of enemies){
+      if(!en.dead&&Math.hypot(en.x-tw.x,en.y-tw.y)<=rng)
+        en.slow=Math.min(0.92,Math.max(en.slow,slwAmt));
+    }
+    tw.aimA=(tw.aimA||0)+dt*.8; // spin animation
+  }
+
+  for(const tw of towers){
+    if(tw.ttype==='warden'||tw.ttype==='chrono')continue; // passive only
     tw.cd=Math.max(0,tw.cd-dt);if(tw.cd>0)continue;
     const tgt=getTarget(tw);if(!tgt)continue;
     tw.cd=1/(tw.rte*SBONUSES.rteMult());
     tw.aimA=Math.atan2(tgt.y-tw.y,tgt.x-tw.x);
-    spawnProj(tw,tgt);
+    if(tw.ttype==='phantom'){firePierce(tw,tgt);}
+    else spawnProj(tw,tgt);
   }
 
   for(let i=projs.length-1;i>=0;i--){
@@ -1404,13 +1490,65 @@ function getTarget(tw){
   return best;
 }
 
+function wardenMult(tw){
+  // Check if any warden is buffing this tower
+  for(const w of towers){
+    if(w.ttype!=='warden')continue;
+    const rng=w.rng*CELL*SBONUSES.rngMult();
+    if(Math.hypot(tw.x-w.x,tw.y-w.y)<=rng){
+      const bonus=[0,.25,.35,.45,.50][w.upgradeLevel]||.25;
+      return 1+bonus;
+    }
+  }
+  return 1;
+}
+
+function isWardenBuffed(tw){
+  return towers.some(w=>w.ttype==='warden'&&Math.hypot(tw.x-w.x,tw.y-w.y)<=w.rng*CELL*SBONUSES.rngMult());
+}
+
 function spawnProj(tw,tgt){
   const xpM=towerXPMult(tw);
   const comboM=towerComboMult(tw);
-  projs.push({x:tw.x,y:tw.y,tgt,dmg:tw.dmg*SBONUSES.dmgMult()*synergyMult(tw)*xpM*comboM,splR:(tw.splR||0)*CELL,slw:tw.slw||0,
+  const wardM=wardenMult(tw);
+  projs.push({x:tw.x,y:tw.y,tgt,dmg:tw.dmg*SBONUSES.dmgMult()*synergyMult(tw)*xpM*comboM*wardM,splR:(tw.splR||0)*CELL,slw:tw.slw||0,
     col:tw.col,spd:270+Math.random()*40,dead:false,
-    pierce:tw.ttype==='sniper'||tw.ttype==='missile',burn:tw.ttype==='inferno',ttype:tw.ttype,
-    sz:tw.ttype==='missile'?6:tw.ttype==='void'?9:4});
+    pierce:tw.ttype==='sniper'||tw.ttype==='missile'||tw.ttype==='omega',
+    burn:tw.ttype==='inferno',ttype:tw.ttype,
+    sz:tw.ttype==='missile'?6:tw.ttype==='void'||tw.ttype==='omega'?9:4});
+}
+
+function firePierce(tw,tgt){
+  // Phantom: instant pierce beam hitting all enemies on the line to target
+  const xpM=towerXPMult(tw);
+  const comboM=towerComboMult(tw);
+  const wardM=wardenMult(tw);
+  const dmg=tw.dmg*SBONUSES.dmgMult()*synergyMult(tw)*xpM*comboM*wardM;
+  const rng=tw.rng*CELL*SBONUSES.rngMult();
+  const ax=tw.x,ay=tw.y,bx=tgt.x,by=tgt.y;
+  const len=Math.hypot(bx-ax,by-ay);
+  const ux=(bx-ax)/len,uy=(by-ay)/len;
+  let hitCount=0;
+  for(const en of enemies){
+    if(en.dead)continue;
+    // Point-to-line distance check
+    const t=Math.max(0,Math.min(len,(en.x-ax)*ux+(en.y-ay)*uy));
+    const px=ax+ux*t,py=ay+uy*t;
+    if(Math.hypot(en.x-px,en.y-py)<=en.sz+6&&t<=rng){
+      en.hp-=dmg; // phantoms always pierce armour
+      floats.push({x:en.x+(Math.random()-.5)*8,y:en.y-en.sz-2,txt:'-'+Math.ceil(dmg),col:tw.col,life:.7,sz:9});
+      if(en.hp<=0)killEnemy(en);
+      hitCount++;
+    }
+  }
+  // Draw beam as particle trail
+  const steps=Math.ceil(len/CELL);
+  for(let i=0;i<=steps;i++){
+    const f=i/steps;
+    parts.push({x:ax+ux*len*f+(Math.random()-.5)*3,y:ay+uy*len*f+(Math.random()-.5)*3,
+      vx:(Math.random()-.5)*20,vy:(Math.random()-.5)*20,col:tw.col,life:.25+Math.random()*.15,sz:2+Math.random()*2});
+  }
+  tw.xp=(tw.xp||0)+hitCount;tw.kills=(tw.kills||0)+hitCount;
 }
 
 function doImpact(p,hx,hy){
@@ -1525,6 +1663,37 @@ function render(){
   }
 
   for(const tw of towers)drawTowerBase(tw);
+  // Warden aura rings — buff glow on nearby towers
+  for(const tw of towers){
+    if(tw.ttype!=='warden')continue;
+    const rng=tw.rng*CELL*SBONUSES.rngMult();
+    const t=Date.now()*.001;
+    CX.save();CX.strokeStyle=tw.col;CX.lineWidth=1.5;CX.globalAlpha=0.15+Math.sin(t*2)*.08;
+    CX.beginPath();CX.arc(tw.x,tw.y,rng,0,Math.PI*2);CX.stroke();CX.globalAlpha=1;CX.restore();
+    // Highlight buffed towers with a golden glow
+    for(const o of towers){
+      if(o===tw||o.ttype==='warden'||o.ttype==='chrono')continue;
+      if(Math.hypot(o.x-tw.x,o.y-tw.y)<=rng){
+        CX.save();CX.strokeStyle='#ffcc44';CX.lineWidth=2;CX.globalAlpha=0.4+Math.sin(t*3)*.15;
+        CX.beginPath();CX.arc(o.x,o.y,CELL*.5,0,Math.PI*2);CX.stroke();CX.globalAlpha=1;CX.restore();
+      }
+    }
+  }
+  // Chrono slow field
+  for(const tw of towers){
+    if(tw.ttype!=='chrono')continue;
+    const rng=tw.rng*CELL*SBONUSES.rngMult();
+    const t=Date.now()*.0008;
+    CX.save();
+    // Pulsing field rings
+    for(let r=0;r<3;r++){
+      const phase=(t+r*.33)%1;
+      CX.globalAlpha=(1-phase)*.18;CX.strokeStyle=tw.col;CX.lineWidth=1.5;
+      CX.beginPath();CX.arc(tw.x,tw.y,rng*phase,0,Math.PI*2);CX.stroke();
+    }
+    CX.globalAlpha=.06;CX.fillStyle=tw.col;CX.beginPath();CX.arc(tw.x,tw.y,rng,0,Math.PI*2);CX.fill();
+    CX.globalAlpha=1;CX.restore();
+  }
   // Synergy lines
   for(const tw of towers){if(!getSynergy(tw))continue;const partner=towers.find(o=>o!==tw&&(tw.ttype==='frost'?o.ttype==='tesla':o.ttype==='frost')&&Math.hypot(o.r-tw.r,o.c-tw.c)<=2);if(partner){CX.save();CX.strokeStyle='rgba(191,95,255,.35)';CX.lineWidth=2;CX.setLineDash([4,4]);CX.beginPath();CX.moveTo(tw.x,tw.y);CX.lineTo(partner.x,partner.y);CX.stroke();CX.setLineDash([]);CX.restore();}}
   for(const tw of towers){if(tw.ttype!=='laser')continue;const tgt=getTarget(tw);if(!tgt||tgt.dead)continue;CX.save();const g=CX.createLinearGradient(tw.x,tw.y,tgt.x,tgt.y);g.addColorStop(0,tw.col);g.addColorStop(1,'transparent');CX.strokeStyle=g;CX.lineWidth=3;CX.shadowColor=tw.col;CX.shadowBlur=18;CX.beginPath();CX.moveTo(tw.x,tw.y);CX.lineTo(tgt.x,tgt.y);CX.stroke();CX.restore();}
@@ -1611,6 +1780,31 @@ function drawTowerTop(tw){
     case 'tesla':  CX.fillRect(-2,-13,4,26);CX.beginPath();CX.arc(0,-13,4,0,Math.PI*2);CX.fill();CX.beginPath();CX.arc(0,13,4,0,Math.PI*2);CX.fill();break;
     case 'inferno':CX.beginPath();CX.arc(0,0,8,0,Math.PI*2);CX.fill();CX.fillStyle='#666';CX.fillRect(4,-3,14,6);CX.fillStyle='#ff8800';CX.beginPath();CX.arc(18,0,5,0,Math.PI*2);CX.fill();break;
     case 'void':   const vt=Date.now()*.003;CX.beginPath();CX.arc(0,0,10,0,Math.PI*2);CX.fillStyle='#000';CX.fill();CX.strokeStyle=tw.col;CX.lineWidth=2;CX.stroke();CX.fillStyle=tw.col;CX.beginPath();CX.arc(Math.cos(vt)*12,Math.sin(vt)*12,3.5,0,Math.PI*2);CX.fill();CX.beginPath();CX.arc(Math.cos(vt+Math.PI)*12,Math.sin(vt+Math.PI)*12,2.5,0,Math.PI*2);CX.fill();break;
+    case 'phantom':
+      const pt=Date.now()*.004;
+      CX.globalAlpha=0.5+Math.sin(pt)*.3;CX.fillStyle=tw.col;CX.beginPath();CX.arc(0,0,8,0,Math.PI*2);CX.fill();CX.globalAlpha=1;
+      CX.fillStyle='#fff';CX.fillRect(-1,-13,2,26);CX.fillRect(-13,-1,26,2);
+      CX.fillStyle=tw.col;CX.beginPath();CX.arc(0,0,4,0,Math.PI*2);CX.fill();break;
+    case 'omega':
+      const ot=Date.now()*.005;
+      for(let a=0;a<4;a++){CX.save();CX.rotate(ot+a*Math.PI/2);CX.fillStyle=tw.col;CX.fillRect(4,-2,12,4);CX.restore();}
+      CX.fillStyle='#000';CX.beginPath();CX.arc(0,0,7,0,Math.PI*2);CX.fill();
+      CX.strokeStyle=tw.col;CX.lineWidth=2.5;CX.stroke();
+      CX.fillStyle='#ff8800';CX.beginPath();CX.arc(0,0,3.5,0,Math.PI*2);CX.fill();break;
+    case 'warden':
+      const wt=Date.now()*.002;
+      CX.strokeStyle=tw.col;CX.lineWidth=2;
+      for(let r=6;r<=11;r+=5){CX.globalAlpha=0.3+Math.sin(wt+r)*.2;CX.beginPath();CX.arc(0,0,r,0,Math.PI*2);CX.stroke();}
+      CX.globalAlpha=1;CX.fillStyle=tw.col;CX.beginPath();
+      for(let i=0;i<6;i++){const a=i*Math.PI/3;CX.lineTo(Math.cos(a)*8,Math.sin(a)*8);}
+      CX.closePath();CX.fill();
+      CX.fillStyle='#000';CX.beginPath();CX.arc(0,0,4,0,Math.PI*2);CX.fill();break;
+    case 'chrono':
+      const ct=Date.now()*.003;
+      CX.strokeStyle=tw.col;CX.lineWidth=2;CX.beginPath();CX.arc(0,0,10,0,Math.PI*2);CX.stroke();
+      CX.fillStyle=tw.col;CX.beginPath();CX.moveTo(0,0);CX.lineTo(Math.cos(ct)*8,Math.sin(ct)*8);CX.lineTo(Math.cos(ct)*.5,Math.sin(ct)*.5);CX.closePath();CX.fill();
+      CX.beginPath();CX.moveTo(0,0);CX.lineTo(Math.cos(-ct*.4)*5,Math.sin(-ct*.4)*5);CX.stroke();
+      CX.fillStyle=tw.col;CX.beginPath();CX.arc(0,0,2,0,Math.PI*2);CX.fill();break;
   }
   CX.shadowBlur=0;CX.restore();
 }
