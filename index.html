@@ -31,176 +31,176 @@
 .gg-unlock{animation:gg-ul 1s ease forwards!important;}
 @keyframes gg-ul{0%{opacity:1}100%{opacity:0;filter:brightness(10)}}
 
-@import url('https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;600;700&family=Exo+2:wght@300;400;700;900&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Bangers&family=Oswald:wght@400;500;700&display=swap');
 *{margin:0;padding:0;box-sizing:border-box;}
-html,body{width:100%;height:100%;overflow:hidden;background:#06070f;font-family:'Rajdhani',sans-serif;color:#c8d8ff;}
+html,body{width:100%;height:100%;overflow:hidden;background:#06090f;font-family:'Oswald',sans-serif;color:#f0f4d8;}
 .screen{position:fixed;inset:0;display:none;flex-direction:column;}
 .screen.active{display:flex;}
 
 /* ── MAP ── */
-#s-map{align-items:center;overflow-y:auto;background:radial-gradient(ellipse at 50% 20%,#0d1535,#06070f);}
+#s-map{align-items:center;overflow-y:auto;background:radial-gradient(ellipse at 50% 20%,#0d1535,#06090f);}
 #map-header{text-align:center;padding:18px 20px 8px;width:100%;}
-#map-header h1{font-family:'Exo 2',sans-serif;font-size:30px;font-weight:900;letter-spacing:6px;color:#00d4ff;text-shadow:0 0 40px #00d4ff55;margin-bottom:6px;}
+#map-header h1{font-family:'Bangers',sans-serif;font-size:40px;font-weight:900;letter-spacing:8px;color:#ff8c00;text-shadow:0 0 40px #ff8c0055;margin-bottom:6px;}
 .mstats{display:flex;gap:8px;margin:6px 0 10px;justify-content:center;flex-wrap:wrap;}
-.mstat{background:rgba(0,212,255,.06);border:1px solid rgba(0,212,255,.12);padding:4px 12px;border-radius:16px;font-size:11px;color:#3a5878;}
-.mstat b{color:#00d4ff;}
+.mstat{background:rgba(255,140,0,.06);border:1px solid rgba(255,140,0,.12);padding:4px 12px;border-radius:16px;font-size:11px;color:#7a9a50;}
+.mstat b{color:#ff8c00;}
 .mstat.tok{border-color:rgba(255,215,0,.25);background:rgba(255,215,0,.05);}
 .mstat.tok b{color:#ffd700;}
 .map-btns{display:flex;gap:10px;justify-content:center;margin-bottom:10px;}
-.map-btn{padding:8px 20px;font-family:'Exo 2',sans-serif;font-size:11px;font-weight:700;letter-spacing:2px;cursor:pointer;border-radius:6px;border:none;transition:.14s;position:relative;}
+.map-btn{padding:8px 20px;font-family:'Bangers',sans-serif;font-size:11px;font-weight:700;letter-spacing:2px;cursor:pointer;border-radius:6px;border:none;transition:.14s;position:relative;}
 .map-btn:hover{filter:brightness(1.25);transform:scale(1.04);}
-.btn-shop{background:linear-gradient(135deg,#3d2900,#221800);border:1px solid #ffd70055;color:#ffd700;}
-.btn-quests{background:linear-gradient(135deg,#00203a,#001020);border:1px solid #00d4ff55;color:#00d4ff;}
-.qbadge{position:absolute;top:-5px;right:-5px;background:#ff3d5a;color:#fff;font-size:8px;font-family:'Exo 2',sans-serif;font-weight:700;border-radius:50%;width:16px;height:16px;display:flex;align-items:center;justify-content:center;}
+.btn-shop{background:linear-gradient(135deg,#5c3a00,#3a2400);border:1px solid #ffd700aa;color:#ffe040;}
+.btn-quests{background:linear-gradient(135deg,#00203a,#001020);border:1px solid #ff8c0055;color:#ff8c00;}
+.qbadge{position:absolute;top:-5px;right:-5px;background:#ff3d5a;color:#fff;font-size:8px;font-family:'Bangers',sans-serif;font-weight:700;border-radius:50%;width:16px;height:16px;display:flex;align-items:center;justify-content:center;}
 #map-grid{display:grid;grid-template-columns:repeat(6,96px);gap:14px 16px;padding:4px 20px 24px;max-width:740px;}
 .node-wrap{display:flex;flex-direction:column;align-items:center;gap:4px;}
-.node{width:78px;height:78px;border-radius:50%;display:flex;flex-direction:column;align-items:center;justify-content:center;border:2px solid #1a2040;background:rgba(8,10,22,.92);transition:.18s;position:relative;overflow:visible;}
-.node.open{border-color:#00d4ff;cursor:pointer;}
-.node.open:hover{border-color:#00ffcc;box-shadow:0 0 20px #00d4ff44;transform:scale(1.07);}
-.node.done{border-color:#00ff88;background:rgba(0,255,136,.06);}
-.node.done:hover{box-shadow:0 0 20px #00ff8844;transform:scale(1.07);cursor:pointer;}
-.node.locked{border-color:#131825;opacity:.38;pointer-events:none;}
+.node{width:78px;height:78px;border-radius:50%;display:flex;flex-direction:column;align-items:center;justify-content:center;border:2px solid #1a2550;background:rgba(8,12,24,.92);transition:.18s;position:relative;overflow:visible;}
+.node.open{border-color:#ff8c00;cursor:pointer;}
+.node.open:hover{border-color:#aaff00;box-shadow:0 0 20px #ff8c0044;transform:scale(1.07);}
+.node.done{border-color:#44ff88;background:rgba(60,255,100,.10);}
+.node.done:hover{box-shadow:0 0 24px #44ff8866;transform:scale(1.07);cursor:pointer;}
+.node.locked{border-color:#141f0a;opacity:.38;pointer-events:none;}
 .node.boss{border-color:#ff3d5a;}
 .node.boss.open{box-shadow:0 0 12px #ff3d5a33;}
-.node-n{font-family:'Exo 2',sans-serif;font-weight:900;font-size:17px;color:#fff;line-height:1;}
-.node-lbl{font-size:7px;color:#3a5878;letter-spacing:.4px;text-align:center;max-width:66px;line-height:1.25;margin-top:2px;}
+.node-n{font-family:'Bangers',sans-serif;font-weight:900;font-size:17px;color:#fff;line-height:1;}
+.node-lbl{font-size:7px;color:#7a9a50;letter-spacing:.4px;text-align:center;max-width:66px;line-height:1.25;margin-top:2px;}
 .node-stars{font-size:12px;letter-spacing:1px;}
-.node-badge{position:absolute;top:-4px;right:-4px;font-size:12px;line-height:1;background:rgba(6,7,15,.95);border-radius:50%;padding:2px;z-index:2;}
+.node-badge{position:absolute;top:-4px;right:-4px;font-size:12px;line-height:1;background:rgba(6,10,20,.95);border-radius:50%;padding:2px;z-index:2;}
 
 /* ── SHOP MODAL ── */
-.modal-bg{position:fixed;inset:0;z-index:600;display:none;align-items:center;justify-content:center;background:rgba(0,0,8,.92);backdrop-filter:blur(8px);}
+.modal-bg{position:fixed;inset:0;z-index:600;display:none;align-items:center;justify-content:center;background:rgba(0,0,12,.88);backdrop-filter:blur(8px);}
 .modal-bg.show{display:flex;}
 .modal-box{border-radius:12px;padding:22px;max-width:540px;width:95%;max-height:88vh;overflow-y:auto;}
-#shop-box{background:#07091a;border:1px solid rgba(255,215,0,.3);box-shadow:0 0 60px rgba(255,215,0,.1);}
-#shop-box h2{font-family:'Exo 2',sans-serif;font-size:15px;font-weight:900;color:#ffd700;letter-spacing:5px;text-align:center;margin-bottom:3px;}
-.shop-sub{font-size:9px;color:#3a5878;letter-spacing:3px;text-align:center;margin-bottom:14px;}
-.shop-tok-display{text-align:center;font-family:'Exo 2',sans-serif;font-size:13px;font-weight:700;color:#ffd700;margin-bottom:12px;}
+#shop-box{background:#0d1535;border:1px solid rgba(255,215,0,.3);box-shadow:0 0 60px rgba(255,215,0,.1);}
+#shop-box h2{font-family:'Bangers',sans-serif;font-size:15px;font-weight:900;color:#ffd700;letter-spacing:5px;text-align:center;margin-bottom:3px;}
+.shop-sub{font-size:9px;color:#7a9a50;letter-spacing:3px;text-align:center;margin-bottom:14px;}
+.shop-tok-display{text-align:center;font-family:'Bangers',sans-serif;font-size:13px;font-weight:700;color:#ffd700;margin-bottom:12px;}
 .sgrid{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin-bottom:12px;}
 .si{background:rgba(255,215,0,.04);border:1px solid rgba(255,215,0,.14);border-radius:8px;padding:11px 12px;cursor:pointer;transition:.14s;}
 .si:hover:not(.maxed){border-color:#ffd700;background:rgba(255,215,0,.1);}
 .si.maxed{opacity:.4;cursor:default;}
 .si-top{display:flex;align-items:center;gap:7px;margin-bottom:3px;}
-.si-ico{font-size:18px;}.si-nm{font-family:'Exo 2',sans-serif;font-size:11px;font-weight:700;color:#c8d8ff;}
-.si-dsc{font-size:9px;color:#3a5878;margin:3px 0 6px;line-height:1.4;}
+.si-ico{font-size:18px;}.si-nm{font-family:'Bangers',sans-serif;font-size:11px;font-weight:700;color:#f0f4d8;}
+.si-dsc{font-size:9px;color:#7a9a50;margin:3px 0 6px;line-height:1.4;}
 .si-foot{display:flex;align-items:center;justify-content:space-between;}
 .si-cost{font-size:10px;color:#ffd700;font-weight:700;}
 .si-pips{display:flex;gap:3px;}
 .si-pip{width:8px;height:8px;border-radius:50%;border:1px solid rgba(255,215,0,.25);}
 .si-pip.on{background:#ffd700;border-color:#ffd700;}
-.modal-close{width:100%;padding:9px;font-family:'Exo 2',sans-serif;font-size:11px;font-weight:700;letter-spacing:3px;cursor:pointer;border-radius:6px;transition:.14s;margin-top:2px;}
+.modal-close{width:100%;padding:9px;font-family:'Bangers',sans-serif;font-size:11px;font-weight:700;letter-spacing:3px;cursor:pointer;border-radius:6px;transition:.14s;margin-top:2px;}
 .shop-close{background:rgba(255,215,0,.07);border:1px solid rgba(255,215,0,.22);color:#ffd700;}
 .shop-close:hover{background:rgba(255,215,0,.18);}
 
 /* ── QUESTS MODAL ── */
-#quests-box{background:#07091a;border:1px solid rgba(0,212,255,.25);box-shadow:0 0 50px rgba(0,212,255,.08);max-width:480px;}
-#quests-box h2{font-family:'Exo 2',sans-serif;font-size:15px;font-weight:900;color:#00d4ff;letter-spacing:5px;text-align:center;margin-bottom:3px;}
-.qsub{font-size:9px;color:#3a5878;letter-spacing:3px;text-align:center;margin-bottom:14px;}
-.qi{background:rgba(0,212,255,.03);border:1px solid #1a2040;border-radius:8px;padding:11px 12px;margin-bottom:8px;display:flex;align-items:center;gap:10px;}
+#quests-box{background:#0d1535;border:1px solid rgba(255,140,0,.25);box-shadow:0 0 50px rgba(255,140,0,.08);max-width:480px;}
+#quests-box h2{font-family:'Bangers',sans-serif;font-size:15px;font-weight:900;color:#ff8c00;letter-spacing:5px;text-align:center;margin-bottom:3px;}
+.qsub{font-size:9px;color:#7a9a50;letter-spacing:3px;text-align:center;margin-bottom:14px;}
+.qi{background:rgba(255,140,0,.03);border:1px solid #1a2550;border-radius:8px;padding:11px 12px;margin-bottom:8px;display:flex;align-items:center;gap:10px;}
 .qi.done{border-color:#00ff8833;background:rgba(0,255,136,.025);}
 .qi-ico{font-size:20px;flex-shrink:0;}
 .qi-body{flex:1;min-width:0;}
-.qi-name{font-family:'Exo 2',sans-serif;font-size:11px;font-weight:700;color:#c8d8ff;}
-.qi-desc{font-size:9px;color:#3a5878;margin-top:2px;line-height:1.4;}
-.qi-bar{height:5px;background:#1a2040;border-radius:3px;margin-top:6px;overflow:hidden;}
-.qi-fill{height:100%;background:linear-gradient(90deg,#00d4ff,#00ff88);border-radius:3px;transition:width .3s;}
+.qi-name{font-family:'Bangers',sans-serif;font-size:11px;font-weight:700;color:#f0f4d8;}
+.qi-desc{font-size:9px;color:#7a9a50;margin-top:2px;line-height:1.4;}
+.qi-bar{height:5px;background:#1a2550;border-radius:3px;margin-top:6px;overflow:hidden;}
+.qi-fill{height:100%;background:linear-gradient(90deg,#ff8c00,#00ff88);border-radius:3px;transition:width .3s;}
 .qi-right{flex-shrink:0;text-align:right;}
 .qi-rwd{font-size:10px;color:#ffd700;font-weight:700;}
-.qi-claim{font-size:9px;padding:3px 8px;border:1px solid #ffd700;background:rgba(255,215,0,.1);color:#ffd700;font-family:'Exo 2',sans-serif;font-weight:700;cursor:pointer;border-radius:3px;display:block;margin-top:4px;}
+.qi-claim{font-size:9px;padding:3px 8px;border:1px solid #ffd700;background:rgba(255,215,0,.1);color:#ffd700;font-family:'Bangers',sans-serif;font-weight:700;cursor:pointer;border-radius:3px;display:block;margin-top:4px;}
 .qi-claim:hover{background:rgba(255,215,0,.25);}
 .qi-done-lbl{font-size:9px;color:#00ff88;font-weight:700;margin-top:4px;}
-.quests-close{background:rgba(0,212,255,.06);border:1px solid rgba(0,212,255,.22);color:#00d4ff;}
-.quests-close:hover{background:rgba(0,212,255,.16);}
+.quests-close{background:rgba(255,140,0,.06);border:1px solid rgba(255,140,0,.22);color:#ff8c00;}
+.quests-close:hover{background:rgba(255,140,0,.16);}
 
 /* ── GAME ── */
 #s-game{flex-direction:row;}
 #g-main{flex:1;position:relative;overflow:hidden;min-width:0;}
 #game-canvas{display:block;position:absolute;top:50px;left:0;}
-#hud{position:absolute;top:0;left:0;right:0;height:50px;background:rgba(4,5,14,.97);border-bottom:1px solid #1a2040;display:flex;align-items:center;gap:7px;padding:0 8px;z-index:20;}
-#hud-title{font-family:'Exo 2',sans-serif;font-size:11px;font-weight:900;color:#00d4ff;letter-spacing:3px;white-space:nowrap;flex-shrink:0;}
+#hud{position:absolute;top:0;left:0;right:0;height:50px;background:rgba(6,10,20,.97);border-bottom:1px solid #1a2550;display:flex;align-items:center;gap:7px;padding:0 8px;z-index:20;}
+#hud-title{font-family:'Bangers',sans-serif;font-size:11px;font-weight:900;color:#ff8c00;letter-spacing:3px;white-space:nowrap;flex-shrink:0;}
 .hv{font-size:11px;color:#2a4060;display:flex;align-items:center;gap:3px;white-space:nowrap;flex-shrink:0;}
-.hv b{color:#c8d8ff;font-size:12px;}
+.hv b{color:#f0f4d8;font-size:12px;}
 .hv.warn b{color:#ff3d5a;}
-.hdiv{width:1px;height:16px;background:#1a2040;flex-shrink:0;}
+.hdiv{width:1px;height:16px;background:#1a2550;flex-shrink:0;}
 #hud-spd{display:flex;gap:3px;flex-shrink:0;}
-.spdbtn{padding:3px 7px;background:rgba(14,18,38,.8);border:1px solid #1a2040;color:#2a4060;font-size:10px;cursor:pointer;border-radius:3px;transition:.12s;}
-.spdbtn.on{border-color:#00d4ff;color:#00d4ff;background:rgba(0,50,80,.5);}
+.spdbtn{padding:3px 7px;background:rgba(14,18,38,.8);border:1px solid #1a2550;color:#2a4060;font-size:10px;cursor:pointer;border-radius:3px;transition:.12s;}
+.spdbtn.on{border-color:#ff8c00;color:#ff8c00;background:rgba(0,50,80,.5);}
 #hud-right{display:flex;gap:5px;margin-left:auto;align-items:center;flex-shrink:0;}
-.hudbtn{padding:5px 11px;border:none;font-family:'Exo 2',sans-serif;font-size:10px;font-weight:700;cursor:pointer;border-radius:4px;letter-spacing:2px;white-space:nowrap;transition:.13s;}
+.hudbtn{padding:5px 11px;border:none;font-family:'Bangers',sans-serif;font-size:10px;font-weight:700;cursor:pointer;border-radius:4px;letter-spacing:2px;white-space:nowrap;transition:.13s;}
 #wavebtn{background:linear-gradient(135deg,#00aaff,#0055bb);color:#fff;}
 #wavebtn:hover:not([disabled]){filter:brightness(1.3);}
 #wavebtn[disabled]{opacity:.28;cursor:default;}
 #livebtn{background:rgba(0,255,136,.1);border:1px solid #00ff88;color:#00ff88;font-size:9px;padding:4px 8px;}
 #livebtn:hover:not([disabled]){background:rgba(0,255,136,.25);}
 #livebtn[disabled]{opacity:.28;cursor:default;}
-#backbtn{background:transparent;border:1px solid #1a2040;color:#2a4060;}
-#backbtn:hover{border-color:#00d4ff;color:#00d4ff;}
+#backbtn{background:transparent;border:1px solid #1a2550;color:#2a4060;}
+#backbtn:hover{border-color:#ff8c00;color:#ff8c00;}
 #waveprog{position:absolute;bottom:0;left:0;right:0;height:2px;background:rgba(255,255,255,.04);}
-#wavefill{height:100%;background:linear-gradient(90deg,#00d4ff,#bf5fff);width:0%;}
+#wavefill{height:100%;background:linear-gradient(90deg,#ff8c00,#bf5fff);width:0%;}
 
 /* BOSS BAR */
 #boss-bar{position:fixed;top:50px;left:0;right:0;z-index:50;display:none;background:rgba(4,2,10,.96);border-bottom:2px solid #ff3d5a;padding:4px 16px;box-shadow:0 2px 20px rgba(255,61,90,.2);}
 #boss-bar.show{display:flex;align-items:center;gap:10px;}
 #bb-icon{font-size:14px;flex-shrink:0;animation:bbpulse 1.2s ease-in-out infinite;}
 @keyframes bbpulse{0%,100%{filter:drop-shadow(0 0 4px #ff3d5a)}50%{filter:drop-shadow(0 0 12px #ff3d5a)}}
-#bb-label{font-family:'Exo 2',sans-serif;font-size:10px;font-weight:700;color:#ff3d5a;letter-spacing:2px;white-space:nowrap;flex-shrink:0;min-width:120px;}
+#bb-label{font-family:'Bangers',sans-serif;font-size:10px;font-weight:700;color:#ff3d5a;letter-spacing:2px;white-space:nowrap;flex-shrink:0;min-width:120px;}
 #bb-track{flex:1;height:10px;background:#1a0808;border-radius:5px;overflow:hidden;border:1px solid rgba(255,61,90,.2);}
 #bb-fill{height:100%;background:linear-gradient(90deg,#ff3d5a,#ff8800);transition:width .12s;}
-#bb-pct{font-family:'Exo 2',sans-serif;font-size:9px;color:#ff3d5a;flex-shrink:0;min-width:34px;text-align:right;}
+#bb-pct{font-family:'Bangers',sans-serif;font-size:9px;color:#ff3d5a;flex-shrink:0;min-width:34px;text-align:right;}
 
 /* SIDEBAR */
-#g-side{width:152px;background:#070818;border-left:1px solid #1a2040;display:flex;flex-direction:column;padding:7px;gap:2px;overflow-y:auto;flex-shrink:0;}
-.stitle{font-family:'Exo 2',sans-serif;font-size:9px;font-weight:700;color:#00d4ff;letter-spacing:3px;padding-bottom:4px;border-bottom:1px solid #1a2040;margin-bottom:2px;}
-.tbtn{padding:6px 6px 5px;background:rgba(12,16,34,.9);border:1px solid #1a2040;border-radius:5px;cursor:pointer;transition:.12s;margin-bottom:2px;position:relative;}
-.tbtn:hover{border-color:#00d4ff88;background:rgba(0,40,70,.5);}
-.tbtn.sel{border-color:#00d4ff;background:rgba(0,55,100,.4);}
+#g-side{width:152px;background:#070818;border-left:1px solid #1a2550;display:flex;flex-direction:column;padding:7px;gap:2px;overflow-y:auto;flex-shrink:0;}
+.stitle{font-family:'Bangers',sans-serif;font-size:9px;font-weight:700;color:#ff8c00;letter-spacing:3px;padding-bottom:4px;border-bottom:1px solid #1a2550;margin-bottom:2px;}
+.tbtn{padding:6px 6px 5px;background:rgba(12,16,34,.9);border:1px solid #1a2550;border-radius:5px;cursor:pointer;transition:.12s;margin-bottom:2px;position:relative;}
+.tbtn:hover{border-color:#ff8c0088;background:rgba(0,40,70,.5);}
+.tbtn.sel{border-color:#ff8c00;background:rgba(0,55,100,.4);}
 .tbtn.unavail{opacity:.32;pointer-events:none;}
 .tbtn.premium-btn{border-color:rgba(255,100,0,.35);background:rgba(40,10,0,.6);}
 .tbtn.premium-btn:hover{border-color:#ff6600;background:rgba(60,20,0,.6);}
 .tbtn.premium-btn.sel{border-color:#ff6600;background:rgba(80,30,0,.6);}
 .premium-tower.si{border-color:rgba(255,68,0,.25)!important;background:rgba(30,8,0,.5)!important;}
 .premium-tower.si:hover:not(.maxed){border-color:#ff6600!important;background:rgba(50,15,0,.6)!important;}
-.tn{font-family:'Exo 2',sans-serif;font-weight:700;font-size:10px;display:flex;align-items:center;gap:3px;}
+.tn{font-family:'Bangers',sans-serif;font-weight:700;font-size:10px;display:flex;align-items:center;gap:3px;}
 .tc{color:#ffd700;font-size:9px;margin-top:1px;}
 .ts{color:#1e3050;font-size:8px;margin-top:1px;line-height:1.3;}
 .tlk{display:block;font-size:7.5px;color:#1a2540;margin-top:1px;}
 
 /* TOOLTIP */
-#tower-tooltip{position:fixed;z-index:100;background:rgba(5,6,18,.97);border:1px solid #1a2040;border-radius:8px;padding:11px 13px;min-width:170px;display:none;box-shadow:0 4px 24px rgba(0,0,0,.7);}
+#tower-tooltip{position:fixed;z-index:100;background:rgba(5,6,18,.97);border:1px solid #1a2550;border-radius:8px;padding:11px 13px;min-width:170px;display:none;box-shadow:0 4px 24px rgba(0,0,0,.7);}
 #tower-tooltip.show{display:block;}
-#tt-title{font-family:'Exo 2',sans-serif;font-size:12px;font-weight:700;margin-bottom:5px;}
-.tt-stat{font-size:10px;color:#3a5878;line-height:1.65;}
-.tt-stat b{color:#c8d8ff;}
+#tt-title{font-family:'Bangers',sans-serif;font-size:12px;font-weight:700;margin-bottom:5px;}
+.tt-stat{font-size:10px;color:#7a9a50;line-height:1.65;}
+.tt-stat b{color:#f0f4d8;}
 .tt-syn{font-size:9px;color:#bf5fff;margin-top:4px;}
-.tt-upbox{margin-top:7px;padding-top:7px;border-top:1px solid #1a2040;}
+.tt-upbox{margin-top:7px;padding-top:7px;border-top:1px solid #1a2550;}
 .tt-uname{color:#ffd700;font-size:10px;font-weight:700;}
-.tt-ucost{color:#3a5878;font-size:9px;}
+.tt-ucost{color:#7a9a50;font-size:9px;}
 .tt-max{color:#00ff88;font-size:10px;margin-top:6px;font-weight:700;}
 .tt-pips{margin-bottom:4px;}
 .tt-pip{display:inline-block;width:8px;height:8px;border-radius:50%;margin-right:2px;vertical-align:middle;border:1px solid rgba(255,255,255,.12);}
-.tt-prio{margin-top:6px;font-size:9px;color:#3a5878;}
-.tt-prio b{color:#c8d8ff;}
+.tt-prio{margin-top:6px;font-size:9px;color:#7a9a50;}
+.tt-prio b{color:#f0f4d8;}
 #tt-prio-btns{display:flex;gap:3px;margin-top:3px;flex-wrap:wrap;}
-.tt-pb{padding:2px 5px;font-size:8px;cursor:pointer;border-radius:3px;border:1px solid #1a2040;color:#3a5878;background:transparent;font-family:'Rajdhani',sans-serif;transition:.1s;}
-.tt-pb:hover,.tt-pb.on{border-color:#00d4ff;color:#00d4ff;background:rgba(0,212,255,.1);}
-#tt-upbtn,#tt-sellbtn,#tt-close{width:100%;padding:4px;font-size:9px;cursor:pointer;border-radius:3px;font-family:'Rajdhani',sans-serif;font-weight:600;letter-spacing:1px;transition:.12s;display:block;margin-top:3px;}
-#tt-upbtn{background:rgba(0,212,255,.1);border:1px solid #00d4ff;color:#00d4ff;}
-#tt-upbtn:hover:not([disabled]){background:rgba(0,212,255,.28);}
+.tt-pb{padding:2px 5px;font-size:8px;cursor:pointer;border-radius:3px;border:1px solid #1a2550;color:#7a9a50;background:transparent;font-family:'Oswald',sans-serif;transition:.1s;}
+.tt-pb:hover,.tt-pb.on{border-color:#ff8c00;color:#ff8c00;background:rgba(255,140,0,.1);}
+#tt-upbtn,#tt-sellbtn,#tt-close{width:100%;padding:4px;font-size:9px;cursor:pointer;border-radius:3px;font-family:'Oswald',sans-serif;font-weight:600;letter-spacing:1px;transition:.12s;display:block;margin-top:3px;}
+#tt-upbtn{background:rgba(255,140,0,.1);border:1px solid #ff8c00;color:#ff8c00;}
+#tt-upbtn:hover:not([disabled]){background:rgba(255,140,0,.28);}
 #tt-upbtn[disabled]{opacity:.22;cursor:default;}
 #tt-sellbtn{background:rgba(255,61,90,.07);border:1px solid #ff3d5a;color:#ff3d5a;}
 #tt-sellbtn:hover{background:rgba(255,61,90,.22);}
-#tt-close{background:transparent;border:1px solid #1a2040;color:#2a4060;}
+#tt-close{background:transparent;border:1px solid #1a2550;color:#2a4060;}
 #tt-close:hover{color:#6a8090;}
 
 /* OVERLAY */
 #overlay{position:fixed;inset:0;z-index:300;display:none;background:rgba(0,0,10,.88);backdrop-filter:blur(7px);align-items:center;justify-content:center;flex-direction:column;text-align:center;}
 #overlay.show{display:flex;}
-#ov-h{font-family:'Exo 2',sans-serif;font-size:26px;font-weight:900;letter-spacing:5px;margin-bottom:8px;}
+#ov-h{font-family:'Bangers',sans-serif;font-size:26px;font-weight:900;letter-spacing:5px;margin-bottom:8px;}
 #ov-p{color:#2a4060;margin-bottom:18px;font-size:12px;line-height:2.1;}
 .ovbtns{display:flex;gap:10px;flex-wrap:wrap;justify-content:center;}
-.ovbtn{padding:10px 22px;border:none;font-family:'Exo 2',sans-serif;font-size:11px;font-weight:700;cursor:pointer;border-radius:5px;letter-spacing:2px;transition:.12s;}
+.ovbtn{padding:10px 22px;border:none;font-family:'Bangers',sans-serif;font-size:11px;font-weight:700;cursor:pointer;border-radius:5px;letter-spacing:2px;transition:.12s;}
 .ovbtn:hover{filter:brightness(1.25);transform:scale(1.03);}
 .ovprim{background:linear-gradient(135deg,#00aaff,#0055bb);color:#fff;}
-.ovsec{background:rgba(18,22,44,.9);border:1px solid #1a2040;color:#c8d8ff;}
+.ovsec{background:rgba(18,22,44,.9);border:1px solid #1a2550;color:#f0f4d8;}
 
 /* NOTIFS */
 #notifs{position:fixed;top:60px;left:50%;transform:translateX(-50%);z-index:200;pointer-events:none;display:flex;flex-direction:column;align-items:center;gap:4px;}
@@ -209,25 +209,25 @@ html,body{width:100%;height:100%;overflow:hidden;background:#06070f;font-family:
 @keyframes nOut{to{opacity:0;transform:translateY(-6px)}}
 
 /* WAVE PREVIEW */
-#wave-preview{position:fixed;bottom:0;left:0;right:152px;z-index:40;background:rgba(4,5,14,.97);border-top:1px solid #1a2040;padding:5px 12px;display:none;align-items:center;gap:8px;}
+#wave-preview{position:fixed;bottom:0;left:0;right:152px;z-index:40;background:rgba(6,10,20,.97);border-top:1px solid #1a2550;padding:5px 12px;display:none;align-items:center;gap:8px;}
 #wave-preview.show{display:flex;}
-#wp-label{font-family:'Exo 2',sans-serif;font-size:9px;font-weight:700;color:#00d4ff;letter-spacing:3px;white-space:nowrap;flex-shrink:0;}
+#wp-label{font-family:'Bangers',sans-serif;font-size:9px;font-weight:700;color:#ff8c00;letter-spacing:3px;white-space:nowrap;flex-shrink:0;}
 #wp-enemies{display:flex;flex-wrap:wrap;gap:4px;flex:1;align-items:center;}
-.wp-group{display:flex;align-items:center;gap:3px;background:rgba(255,255,255,.04);border:1px solid #1a2040;border-radius:4px;padding:2px 6px;}
+.wp-group{display:flex;align-items:center;gap:3px;background:rgba(255,255,255,.04);border:1px solid #1a2550;border-radius:4px;padding:2px 6px;}
 .wp-icon{font-size:13px;line-height:1;}
-.wp-count{font-family:'Exo 2',sans-serif;font-size:9px;font-weight:700;color:#c8d8ff;}
-.wp-name{font-size:8px;color:#3a5878;}
+.wp-count{font-family:'Bangers',sans-serif;font-size:9px;font-weight:700;color:#f0f4d8;}
+.wp-name{font-size:8px;color:#7a9a50;}
 
 /* ── CHEAT MODAL ── */
 #cheat-modal{position:fixed;inset:0;z-index:900;display:none;align-items:center;justify-content:center;background:rgba(0,0,0,.85);}
 #cheat-modal.show{display:flex;}
-#cheat-box{background:#0a0800;border:1px solid #33ff00;border-radius:10px;padding:28px 32px;font-family:'Exo 2',sans-serif;text-align:center;box-shadow:0 0 40px rgba(50,255,0,.2);}
+#cheat-box{background:#0a0800;border:1px solid #33ff00;border-radius:10px;padding:28px 32px;font-family:'Bangers',sans-serif;text-align:center;box-shadow:0 0 40px rgba(50,255,0,.2);}
 #cheat-box h2{color:#33ff00;font-size:14px;letter-spacing:6px;margin-bottom:4px;}
 #cheat-box p{color:#226600;font-size:10px;letter-spacing:2px;margin-bottom:18px;}
-#cheat-amount{background:#040800;border:1px solid #33ff0055;color:#33ff00;font-family:'Exo 2',sans-serif;font-size:18px;font-weight:700;text-align:center;padding:10px 20px;border-radius:6px;width:140px;outline:none;}
+#cheat-amount{background:#040800;border:1px solid #33ff0055;color:#33ff00;font-family:'Bangers',sans-serif;font-size:18px;font-weight:700;text-align:center;padding:10px 20px;border-radius:6px;width:140px;outline:none;}
 #cheat-amount:focus{border-color:#33ff00;}
 .cheat-btns{display:flex;gap:10px;margin-top:16px;justify-content:center;}
-.cheat-btn{padding:9px 20px;border:none;font-family:'Exo 2',sans-serif;font-size:11px;font-weight:700;cursor:pointer;border-radius:5px;letter-spacing:2px;}
+.cheat-btn{padding:9px 20px;border:none;font-family:'Bangers',sans-serif;font-size:11px;font-weight:700;cursor:pointer;border-radius:5px;letter-spacing:2px;}
 #cheat-confirm{background:#33ff00;color:#000;}
 #cheat-cancel{background:transparent;border:1px solid #33ff0044;color:#33ff00;}
 /* ── ENDLESS NODE ── */
@@ -244,14 +244,14 @@ html,body{width:100%;height:100%;overflow:hidden;background:#06070f;font-family:
 /* Book spine texture */
 #guide-book::before{content:'';position:absolute;inset:0;background:url("data:image/svg+xml,%3Csvg width='4' height='4' viewBox='0 0 4 4' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M0 0h1v1H0zM2 2h1v1H2z' fill='rgba(255,255,255,0.012)'/%3E%3C/svg%3E");pointer-events:none;z-index:0;}
 #guide-titlebar{position:relative;z-index:2;background:linear-gradient(90deg,#0e0b04,#1a1408,#0e0b04);border-bottom:1px solid rgba(180,140,60,.3);padding:12px 20px;display:flex;align-items:center;justify-content:space-between;flex-shrink:0;}
-#guide-titlebar h2{font-family:'Exo 2',sans-serif;font-size:15px;font-weight:900;color:#c8a84a;letter-spacing:5px;}
+#guide-titlebar h2{font-family:'Bangers',sans-serif;font-size:15px;font-weight:900;color:#c8a84a;letter-spacing:5px;}
 .guide-subtitle-txt{font-size:9px;color:#5a4a28;letter-spacing:3px;}
-#guide-close{background:transparent;border:1px solid rgba(180,140,60,.3);color:#c8a84a;font-size:11px;cursor:pointer;padding:5px 12px;border-radius:4px;font-family:'Exo 2',sans-serif;font-weight:700;letter-spacing:2px;transition:.14s;}
+#guide-close{background:transparent;border:1px solid rgba(180,140,60,.3);color:#c8a84a;font-size:11px;cursor:pointer;padding:5px 12px;border-radius:4px;font-family:'Bangers',sans-serif;font-weight:700;letter-spacing:2px;transition:.14s;}
 #guide-close:hover{background:rgba(180,140,60,.15);}
 #guide-body{position:relative;z-index:1;display:flex;flex:1;overflow:hidden;}
 /* Chapter tabs */
 #guide-tabs{width:130px;flex-shrink:0;background:rgba(8,6,2,.7);border-right:1px solid rgba(180,140,60,.15);display:flex;flex-direction:column;padding:10px 0;overflow-y:auto;}
-.gtab{padding:10px 14px;cursor:pointer;transition:.13s;border-left:2px solid transparent;font-family:'Exo 2',sans-serif;font-size:10px;font-weight:700;color:#4a3a1a;letter-spacing:1px;line-height:1.4;}
+.gtab{padding:10px 14px;cursor:pointer;transition:.13s;border-left:2px solid transparent;font-family:'Bangers',sans-serif;font-size:10px;font-weight:700;color:#4a3a1a;letter-spacing:1px;line-height:1.4;}
 .gtab:hover{color:#c8a84a;background:rgba(180,140,60,.06);}
 .gtab.on{color:#c8a84a;border-left-color:#c8a84a;background:rgba(180,140,60,.09);}
 .gtab-icon{font-size:16px;display:block;margin-bottom:3px;}
@@ -270,24 +270,24 @@ html,body{width:100%;height:100%;overflow:hidden;background:#06070f;font-family:
 .g-card-canvas-wrap{background:rgba(0,0,0,.5);display:flex;align-items:center;justify-content:center;height:90px;position:relative;}
 .g-card-canvas-wrap canvas{display:block;}
 .g-card-body{padding:9px 11px;}
-.g-card-name{font-family:'Exo 2',sans-serif;font-size:11px;font-weight:700;color:#c8d8ff;margin-bottom:2px;}
-.g-card-type{font-size:8px;color:#3a5878;letter-spacing:2px;margin-bottom:5px;}
-.g-card-stats{font-size:9px;color:#3a5878;line-height:1.7;}
+.g-card-name{font-family:'Bangers',sans-serif;font-size:11px;font-weight:700;color:#f0f4d8;margin-bottom:2px;}
+.g-card-type{font-size:8px;color:#7a9a50;letter-spacing:2px;margin-bottom:5px;}
+.g-card-stats{font-size:9px;color:#7a9a50;line-height:1.7;}
 .g-card-stats b{color:#8aaac8;}
-.g-card-trait{display:inline-block;font-size:8px;padding:1px 6px;border-radius:10px;border:1px solid;margin-top:4px;margin-right:3px;font-family:'Exo 2',sans-serif;font-weight:700;letter-spacing:1px;}
+.g-card-trait{display:inline-block;font-size:8px;padding:1px 6px;border-radius:10px;border:1px solid;margin-top:4px;margin-right:3px;font-family:'Bangers',sans-serif;font-weight:700;letter-spacing:1px;}
 /* Pip / mechanic reference */
 .pip-section{margin-bottom:22px;}
-.pip-section-title{font-family:'Exo 2',sans-serif;font-size:11px;font-weight:700;color:#c8a84a;letter-spacing:3px;margin-bottom:10px;padding-bottom:5px;border-bottom:1px solid rgba(180,140,60,.2);}
+.pip-section-title{font-family:'Bangers',sans-serif;font-size:11px;font-weight:700;color:#c8a84a;letter-spacing:3px;margin-bottom:10px;padding-bottom:5px;border-bottom:1px solid rgba(180,140,60,.2);}
 .pip-rows{display:flex;flex-direction:column;gap:8px;}
 .pip-row{display:flex;align-items:flex-start;gap:12px;background:rgba(255,255,255,.02);border-radius:6px;padding:9px 11px;border:1px solid rgba(255,255,255,.05);}
 .pip-vis{flex-shrink:0;width:52px;height:42px;display:flex;align-items:center;justify-content:center;}
 .pip-vis canvas{display:block;}
 .pip-text{flex:1;}
-.pip-text b{font-family:'Exo 2',sans-serif;font-size:10px;font-weight:700;color:#c8d8ff;display:block;margin-bottom:2px;}
-.pip-text span{font-size:9px;color:#3a5878;line-height:1.5;}
+.pip-text b{font-family:'Bangers',sans-serif;font-size:10px;font-weight:700;color:#f0f4d8;display:block;margin-bottom:2px;}
+.pip-text span{font-size:9px;color:#7a9a50;line-height:1.5;}
 /* Page heading */
-.gpage-title{font-family:'Exo 2',sans-serif;font-size:13px;font-weight:900;color:#c8a84a;letter-spacing:4px;margin-bottom:4px;}
-.gpage-sub{font-size:9px;color:#3a5878;letter-spacing:2px;margin-bottom:14px;}
+.gpage-title{font-family:'Bangers',sans-serif;font-size:13px;font-weight:900;color:#c8a84a;letter-spacing:4px;margin-bottom:4px;}
+.gpage-sub{font-size:9px;color:#7a9a50;letter-spacing:2px;margin-bottom:14px;}
 /* Lore intro panels */
 .lore-block{background:linear-gradient(135deg,rgba(20,16,6,.9),rgba(12,10,4,.9));border:1px solid rgba(180,140,60,.2);border-radius:8px;padding:14px 16px;margin-bottom:14px;font-size:10px;color:#5a4a28;line-height:1.8;font-style:italic;}
 .lore-block b{color:#c8a84a;font-style:normal;}
@@ -318,7 +318,7 @@ html,body{width:100%;height:100%;overflow:hidden;background:#06070f;font-family:
 <!-- MAP SCREEN -->
 <div id="s-map" class="screen active">
   <div id="map-header">
-    <h1>TOWER DEFENCE 2</h1>
+    <h1>⚔️ TOWER BLITZ</h1>
     <div class="mstats">
       <div class="mstat">Unlocked: <b id="ms-ul">1</b>/30</div>
       <div class="mstat">Best: <b id="ms-hi">0</b></div>
@@ -328,9 +328,9 @@ html,body{width:100%;height:100%;overflow:hidden;background:#06070f;font-family:
       <div class="mstat" id="ms-endless-wrap" style="display:none">∞ Best: <b id="ms-endless">0</b></div>
     </div>
     <div class="map-btns">
-      <button class="map-btn btn-shop" onclick="openShop()">🪙 TOKEN SHOP</button>
-      <button class="map-btn btn-quests" id="quests-btn" onclick="openQuests()">📋 DAILY QUESTS <span class="qbadge" id="qbadge" style="display:none">!</span></button>
-      <button class="map-btn btn-guide" onclick="openGuide()">📖 FIELD GUIDE</button>
+      <button class="map-btn btn-shop" onclick="openShop()">🪙 GEAR SHOP</button>
+      <button class="map-btn btn-quests" id="quests-btn" onclick="openQuests()">📋 MISSIONS <span class="qbadge" id="qbadge" style="display:none">!</span></button>
+      <button class="map-btn btn-guide" onclick="openGuide()">📖 COMBAT MANUAL</button>
     </div>
   </div>
   <div id="map-grid"></div>
@@ -354,8 +354,8 @@ html,body{width:100%;height:100%;overflow:hidden;background:#06070f;font-family:
   <div id="guide-book">
     <div id="guide-titlebar">
       <div>
-        <h2>FIELD GUIDE</h2>
-        <div class="guide-subtitle-txt">COMMANDER'S TACTICAL COMPENDIUM</div>
+        <h2>COMBAT MANUAL</h2>
+        <div class="guide-subtitle-txt">SOLDIER'S TACTICAL HANDBOOK</div>
       </div>
       <button id="guide-close" onclick="closeGuide()">✕ CLOSE</button>
     </div>
@@ -379,7 +379,7 @@ html,body{width:100%;height:100%;overflow:hidden;background:#06070f;font-family:
 <!-- SHOP MODAL -->
 <div class="modal-bg" id="shop-modal">
   <div class="modal-box" id="shop-box">
-    <h2>TOKEN SHOP</h2>
+    <h2>GEAR SHOP</h2>
     <div class="shop-sub">PERMANENT UPGRADES — PERSIST ACROSS ALL RUNS</div>
     <div class="shop-tok-display">🪙 <span id="shop-tok-count">0</span> tokens available</div>
     <div class="sgrid" id="shop-grid"></div>
@@ -390,7 +390,7 @@ html,body{width:100%;height:100%;overflow:hidden;background:#06070f;font-family:
 <!-- QUESTS MODAL -->
 <div class="modal-bg" id="quests-modal">
   <div class="modal-box" id="quests-box">
-    <h2>DAILY QUESTS</h2>
+    <h2>DAILY MISSIONS</h2>
     <div class="qsub">📅 RESETS EACH DAY — EARN BONUS TOKENS</div>
     <div id="quests-list"></div>
     <button class="modal-close quests-close" onclick="closeQuests()">✕ CLOSE</button>
@@ -485,7 +485,7 @@ html,body{width:100%;height:100%;overflow:hidden;background:#06070f;font-family:
     </div>
   </div>
 </div>
-<div id="wave-preview"><div id="wp-label">NEXT WAVE</div><div id="wp-enemies"></div></div>
+<div id="wave-preview"><div id="wp-label">⚠ INCOMING</div><div id="wp-enemies"></div></div>
 
 <script>
 'use strict';
@@ -516,7 +516,7 @@ html,body{width:100%;height:100%;overflow:hidden;background:#06070f;font-family:
 // ══════════════════════════════════════
 const TDEFS={
   cannon: {name:'Cannon', icon:'💣',col:'#ffd700',ul:1, cost:60, dmg:30, rng:3.0,rte:1.0,splR:0.8,slw:0},
-  sniper: {name:'Sniper', icon:'🎯',col:'#00d4ff',ul:1, cost:90, dmg:80, rng:7.0,rte:0.5,splR:0,  slw:0},
+  sniper: {name:'Sniper', icon:'🎯',col:'#ff8c00',ul:1, cost:90, dmg:80, rng:7.0,rte:0.5,splR:0,  slw:0},
   frost:  {name:'Frost',  icon:'❄️', col:'#88ddff',ul:2, cost:75, dmg:8,  rng:3.0,rte:1.2,splR:1.0,slw:0.6},
   laser:  {name:'Laser',  icon:'⚡', col:'#00ff88',ul:3, cost:110,dmg:15, rng:4.5,rte:5.0,splR:0,  slw:0},
   missile:{name:'Missile',icon:'🚀',col:'#ff8c00',ul:5, cost:140,dmg:100,rng:5.0,rte:0.4,splR:1.4,slw:0},
@@ -532,6 +532,8 @@ const TDEFS={
            special:'Buffs all nearby towers +25% dmg & +15% range. Does not attack.'},
   chrono: {name:'Chrono',  icon:'⏱',col:'#44ddff',ul:1,cost:300,dmg:0,  rng:4.0,rte:0,  splR:0,  slw:0,  tokenOnly:true,tokenCost:65,
            special:'Time-slow field — slows ALL enemies in range by 75%. No attack.'},
+  overwatch:{name:'Overwatch',icon:'🎯',col:'#ff4466',ul:1,cost:350,dmg:0,rng:7.0,rte:0,splR:0,slw:0, tokenOnly:true,tokenCost:70,
+             special:'Marks the highest-threat enemy — ALL towers instantly volley it simultaneously. 8s cooldown.'},
 };
 const TUPG={
   cannon: [{c:80, dmg:50, rng:3.2,rte:1.1,n:'Heavy Shell'},{c:130,dmg:85, rng:3.5,rte:1.3,n:'Siege Cannon'},{c:220,dmg:160,rng:4.0,rte:1.5,n:'MEGA CANNON'}],
@@ -546,6 +548,7 @@ const TUPG={
   omega:  [{c:600,dmg:800,rng:6.5,rte:.40,n:'Fission'},    {c:900,dmg:1300,rng:7.0,rte:.45,n:'Fusion'},     {c:1400,dmg:2400,rng:8.0,rte:.52,n:'SINGULARITY'}],
   warden: [{c:280,dmg:0,rng:4.0,rte:0,n:'Iron Aura'},      {c:440,dmg:0,rng:4.5,rte:0,n:'Bulwark'},         {c:680,dmg:0,rng:5.5,rte:0,n:'DIVINE SHIELD'}],
   chrono: [{c:320,dmg:0,rng:4.5,rte:0,n:'Time Dilation'},  {c:500,dmg:0,rng:5.0,rte:0,n:'Slow Reality'},    {c:780,dmg:0,rng:6.0,rte:0,n:'TEMPORAL LOCK'}],
+  overwatch:[{c:300,dmg:0,rng:7.5,rte:0,n:'Target Lock'},{c:480,dmg:0,rng:8.0,rte:0,n:'Priority Override'},{c:750,dmg:0,rng:9.0,rte:0,n:'TOTAL LOCKDOWN'}],
 };
 
 // ══════════════════════════════════════
@@ -564,19 +567,19 @@ const SHOP_UPGRADES=[
 //  ENEMY DEFINITIONS
 // ══════════════════════════════════════
 const EDEFS={
-  normal:  {name:'Soldier', col:'#4ccfff',sz:7,  hpm:1,    spm:1.0, rwd:10,shape:'circle', lives:1},
-  fast:    {name:'Runner',  col:'#ffee00',sz:5,  hpm:0.22, spm:2.0, rwd:7, shape:'diamond',lives:1},
-  heavy:   {name:'Tank',    col:'#ff8833',sz:12, hpm:6,    spm:0.5, rwd:24,shape:'square', lives:2,armor:.28},
-  armored: {name:'Armoured',col:'#aabbff',sz:9,  hpm:3.5,  spm:0.8, rwd:18,shape:'hex',   lives:2,armor:.38},
-  swarm:   {name:'Swarm',   col:'#ffdd88',sz:4,  hpm:0.18, spm:1.8, rwd:3, shape:'circle',lives:1},
-  healer:  {name:'Medic',   col:'#00ff88',sz:8,  hpm:2,    spm:0.85,rwd:16,shape:'cross',  lives:1,heals:true},
-  bomber:  {name:'Bomber',  col:'#ff8800',sz:10, hpm:2.5,  spm:0.9, rwd:20,shape:'star',   lives:2,explodes:true},
+  normal:  {name:'Soldier', col:'#4ccfff',sz:7,  hpm:1,    spm:1.0, rwd:6,shape:'circle', lives:1},
+  fast:    {name:'Runner',  col:'#ffee00',sz:5,  hpm:0.22, spm:2.0, rwd:4, shape:'diamond',lives:1},
+  heavy:   {name:'Tank',    col:'#ff8833',sz:12, hpm:6,    spm:0.5, rwd:8,shape:'square', lives:2,armor:.28},
+  armored: {name:'Armoured',col:'#aabbff',sz:9,  hpm:3.5,  spm:0.8, rwd:11,shape:'hex',   lives:2,armor:.38},
+  swarm:   {name:'Swarm',   col:'#ffdd88',sz:4,  hpm:0.18, spm:1.8, rwd:2, shape:'circle',lives:1},
+  healer:  {name:'Medic',   col:'#00ff88',sz:8,  hpm:2,    spm:0.85,rwd:10,shape:'cross',  lives:1,heals:true},
+  bomber:  {name:'Bomber',  col:'#ff8800',sz:10, hpm:2.5,  spm:0.9, rwd:12,shape:'star',   lives:2,explodes:true},
   split:      {name:'Splitter',  col:'#44aaff',sz:9,  hpm:1.8,  spm:0.9, rwd:14,shape:'hex',   lives:1,splits:true},
-  armsplit:   {name:'IronSplit', col:'#cc88ff',sz:10, hpm:3.0,  spm:0.75,rwd:22,shape:'hex',   lives:2,armor:.30,splitArmored:true},
+  armsplit:   {name:'IronSplit', col:'#cc88ff',sz:10, hpm:3.0,  spm:0.75,rwd:13,shape:'hex',   lives:2,armor:.30,splitArmored:true},
   phantom_e:  {name:'Wraith',   col:'#ccffee',sz:8,  hpm:1.6,  spm:1.3, rwd:18,shape:'diamond',lives:1,cloaks:true},
-  boss:       {name:'BOSS',    col:'#ff3333',sz:18, hpm:18,   spm:0.5, rwd:90,shape:'boss',   lives:3,summon:'normal',sumCount:3},
-  teleboss:{name:'TELEPORT',col:'#ff44ff',sz:16, hpm:14,   spm:0.55,rwd:75,shape:'boss',   lives:3,teleports:true},
-  megaboss:{name:'OVERLORD',col:'#ff00ff',sz:24, hpm:45,   spm:0.4, rwd:220,shape:'boss',  lives:5,summon:'boss',sumCount:2,mega:true},
+  boss:       {name:'BOSS',    col:'#ff3333',sz:18, hpm:18,   spm:0.5, rwd:54,shape:'boss',   lives:3,summon:'normal',sumCount:3},
+  teleboss:{name:'TELEPORT',col:'#ff44ff',sz:16, hpm:14,   spm:0.55,rwd:45,shape:'boss',   lives:3,teleports:true},
+  megaboss:{name:'OVERLORD',col:'#ff00ff',sz:24, hpm:45,   spm:0.4, rwd:132,shape:'boss',  lives:5,summon:'boss',sumCount:2,mega:true},
 };
 
 // ══════════════════════════════════════
@@ -597,7 +600,7 @@ function mkLevel(i){
   const sm=1+i*.035;
   const goldDecay=Math.max(0.35, 1-i*.022);
   const startGold=Math.round((160+i*18)*goldDecay*2); // startBonus applied at runtime
-  const goldReward=Math.round((22+i*5+(isBoss?40:0))*goldDecay);
+  const goldReward=Math.round((14+i*3+(isBoss?25:0))*goldDecay);
   const base=8+i*3, waveCount=5;
   const branching=(i===5||i===11||i===17||i===23);
   const waves=[];
@@ -637,7 +640,7 @@ function mkEndlessWave(w){
   const hm = Math.pow(1.12, w);
   const sm = Math.min(4.0, 1 + w * 0.04);
   const goldDecay = Math.max(0.2, 0.8 - w * 0.008);
-  const goldReward = Math.round((60 + w * 8) * goldDecay);
+  const goldReward = Math.round((38 + w * 5) * goldDecay);
   const startGold = 0; // carry gold between waves
   const isBoss = (w % 5 === 0);
   // Enemy composition escalates every 10 waves
@@ -744,6 +747,8 @@ let CW=800,CH=600,CELL=40,COLS=20,ROWS=14;
 let PATH=[],PATH2=[],PGRID=new Set(),GRID=[];
 let towers=[],enemies=[],projs=[],parts=[],floats=[];
 let gold=0,lives=20,score=0,wave=0;
+let adaptMult=1.0; // adaptive difficulty multiplier
+let waveStartLives=0; // lives at start of each wave
 let waveActive=false,spawnQ=[],spawnT=0,spawnTotal=0;
 let selType=null,ttTower=null,ttAX=0,ttAY=0;
 let curLv=0,gameSpeed=1,running=false,isDaily=false;
@@ -1341,6 +1346,7 @@ const GUIDE_TOWERS=[
   {type:'omega',   role:'Nuclear',   lore:'Token exclusive. Massive nuclear blast ignoring all armour. The most powerful tower in the arsenal.'},
   {type:'warden',  role:'Support',   lore:'Token exclusive. Passive aura boosts all nearby towers by +25% damage and range. Does not attack.'},
   {type:'chrono',  role:'Time',      lore:'Token exclusive. Slows all enemies in range by 75%. Counters boss rage completely. Does not attack.'},
+  {type:'overwatch',role:'Command',   lore:'Token exclusive. Scans for the most dangerous enemy in range and marks it — forcing EVERY attack tower on the map to fire at it simultaneously. Devastating on bosses. 8s cooldown, reduced per upgrade.'},
 ];
 
 const THREAT_COLS=['','#00ff88','#ffd700','#ff8800','#ff3d5a','#ff00ff'];
@@ -1350,7 +1356,7 @@ function buildGuideEnemies(page){
   stopGuideAnims();
   page.innerHTML=`<div class="gpage-title">ENEMY CODEX</div>
   <div class="gpage-sub">THREAT ASSESSMENT & TACTICAL NOTES</div>
-  <div class="lore-block"><b>Commander's Note:</b> Study each enemy class carefully. Many units carry secondary abilities that can reverse a well-placed defence. Priority targets are marked with higher threat ratings.</div>
+  <div class="lore-block"><b>Sgt. Note:</b> Study each enemy class carefully. Many units carry secondary abilities that can reverse a well-placed defence. Priority targets are marked with higher threat ratings.</div>
   <div class="g-cards" id="enemy-cards"></div>`;
   const grid=page.querySelector('#enemy-cards');
   GUIDE_ENEMIES.forEach(e=>{
@@ -1389,7 +1395,7 @@ function buildGuideTowers(page){
   stopGuideAnims();
   page.innerHTML=`<div class="gpage-title">TOWER ARSENAL</div>
   <div class="gpage-sub">SPECIFICATIONS & DEPLOYMENT NOTES</div>
-  <div class="lore-block"><b>Commander's Note:</b> Each tower gains XP from kills in range, boosting damage by up to 60%. Adjacent same-type towers form Combos for bonus multipliers. Frost+Tesla adjacency triggers Synergy. Token-exclusive towers require the Token Shop.</div>
+  <div class="lore-block"><b>Sgt. Note:</b> Each tower gains XP from kills in range, boosting damage by up to 60%. Adjacent same-type towers form Combos for bonus multipliers. Frost+Tesla adjacency triggers Synergy. Token-exclusive towers require the Token Shop.</div>
   <div class="g-cards" id="tower-cards"></div>`;
   const grid=page.querySelector('#tower-cards');
   GUIDE_TOWERS.forEach(t=>{
@@ -1488,8 +1494,7 @@ function buildGuideMechanics(page){
   const mechs=[
     {icon:'⭐',title:'Tower XP System',col:'#ffe066',
      body:`Every tower earns <b style="color:#ffe066">XP</b> when an enemy dies within its firing range. XP accumulates across 4 levels (8 / 20 / 40 / 70 kills).<br><br>
-     <b style="color:#ffe066">XP Lv1</b> +12% dmg &nbsp;|&nbsp; <b style="color:#ffaa00">Lv2</b> +25% &nbsp;|&nbsp; <b style="color:#ff6600">Lv3</b> +40% &nbsp;|&nbsp; <b style="color:#ff3300">Lv4</b> +60%<br><br>
-     XP level is shown as gold <b>★</b> stars on the tower base. The XP bar (thin line above the base) fills as kills accumulate. A fully-levelled tower glows white.`},
+          XP level is shown as gold <b>★</b> stars on the tower base. The XP bar (thin line above the base) fills as kills accumulate. A fully-levelled tower glows white.`},
     {icon:'×3',title:'Tower Combo Bonus',col:'#00ffaa',
      body:`Place <b style="color:#00ffaa">2 or more towers of the same type</b> in adjacent tiles (including diagonal) to activate a Combo multiplier.<br><br>
      <b style="color:#00ffaa">×2 Pair</b> = +15% damage &nbsp;|&nbsp; <b style="color:#00ffaa">×3+ Group</b> = +35% damage<br><br>
@@ -1510,7 +1515,7 @@ function buildGuideMechanics(page){
      • The two child Armoured units retain full HP<br>
      • Snipers pierce the armour on both the parent and children<br><br>
      Priority: kill before Medics heal it back up.`},
-    {icon:'🎯',title:'Target Priority',col:'#00d4ff',
+    {icon:'🎯',title:'Target Priority',col:'#ff8c00',
      body:`Click any placed tower to open its tooltip, then select a targeting priority:<br><br>
      <b style="color:#00d4ff">First</b> — targets the enemy furthest along the path (default)<br>
      <b style="color:#00d4ff">Last</b> — targets the enemy nearest the start<br>
@@ -1609,7 +1614,7 @@ function startLv(idx){
   gold=lv.startGold+SBONUSES.startBonus();
   lives=lv.startLives+bonusLives;
   startLives_=lives;
-  score=0;wave=0;waveActive=false;running=true;livesUpCount=0;
+  score=0;wave=0;waveActive=false;running=true;livesUpCount=0;adaptMult=1.0;waveStartLives=0;
   if(idx!==30)endlessMode=false;
   towers=[];enemies=[];projs=[];parts=[];floats=[];
   spawnQ=[];spawnT=0;spawnTotal=0;
@@ -1789,7 +1794,7 @@ CV.addEventListener('click',e=>{
   towers.push({r:rr,c:cc,x:cc*CELL+CELL/2,y:rr*CELL+CELL/2,ttype:selType,
     dmg:def.dmg,rng:def.rng,rte:def.rte,splR:def.splR,slw:def.slw,
     col:def.col,icon:def.icon,name:def.name,cd:0,aimA:0,upgradeLevel:0,priority:'first',
-    xp:0,xpLv:0,kills:0});
+    kills:0});
   selType=null;document.querySelectorAll('.tbtn').forEach(b=>b.classList.remove('sel'));
   updateHUD();
 });
@@ -1809,12 +1814,11 @@ function updateTTContent(){
   const syn=getSynergy(ttTower);
   const synEl=document.getElementById('tt-syn');
   synEl.style.display=syn?'block':'none';if(syn)synEl.textContent=`⚡ Synergy +30% dmg`;
-  const xpLv=ttTower.xpLv||0;const comboM=towerComboMult(ttTower);
+  const comboM=towerComboMult(ttTower);
   const fatM=towerFatigueMult(ttTower);
-  const xpBonus=xpLv>0?` <span style="color:#ffe066">★${xpLv} +${Math.round(XP_BONUSES[xpLv]*100)}%xp</span>`:'';
   const comboBonus=comboM>1?` <span style="color:#00ffaa">${comboM>=1.35?'×3':' ×2'} combo</span>`:'';
   const fatigueWarn=fatM<1?` <span style="color:#ff3300">🔥 ${Math.round(fatM*100)}% worn</span>`:'';
-  document.getElementById('tt-stats').innerHTML=`<b>DMG</b> ${(ttTower.dmg*SBONUSES.dmgMult()*synergyMult(ttTower)*towerXPMult(ttTower)*towerComboMult(ttTower)*fatM).toFixed(0)} &nbsp;<b>RNG</b> ${(ttTower.rng*SBONUSES.rngMult()).toFixed(1)} &nbsp;<b>RTE</b> ${(ttTower.rte*SBONUSES.rteMult()).toFixed(1)}/s`+(ttTower.slw?`<br><b>SLOW</b> ${Math.round(ttTower.slw*100)}%`:'')+`<br><b>Kills</b> ${ttTower.kills||0} <b>Shots</b> ${ttTower.shots||0}${xpBonus}${comboBonus}${fatigueWarn}<br><b>Sell:</b> <span style="color:#ffd700">+${sellVal(ttTower)}💰</span>`;
+  document.getElementById('tt-stats').innerHTML=`<b>DMG</b> ${(ttTower.dmg*SBONUSES.dmgMult()*synergyMult(ttTower)*towerXPMult(ttTower)*towerComboMult(ttTower)*fatM).toFixed(0)} &nbsp;<b>RNG</b> ${(ttTower.rng*SBONUSES.rngMult()).toFixed(1)} &nbsp;<b>RTE</b> ${(ttTower.rte*SBONUSES.rteMult()).toFixed(1)}/s`+(ttTower.slw?`<br><b>SLOW</b> ${Math.round(ttTower.slw*100)}%`:'')+`<br><b>Kills</b> ${ttTower.kills||0} <b>Shots</b> ${ttTower.shots||0}${comboBonus}${fatigueWarn}<br><b>Sell:</b> <span style="color:#ffd700">+${sellVal(ttTower)}💰</span>`;
   document.getElementById('tt-upbox').style.display=maxed?'none':'block';
   document.getElementById('tt-max').style.display=maxed?'block':'none';
   const upbtn=document.getElementById('tt-upbtn');upbtn.style.display=maxed?'none':'block';
@@ -1854,6 +1858,7 @@ function sellVal(t){return Math.floor((TDEFS[t.ttype].cost+TUPG[t.ttype].slice(0
 // ══════════════════════════════════════
 function sendWave(){
   const lv=LEVELS[curLv];if(waveActive||wave>=lv.waveCount)return;
+  waveStartLives=lives;
   wave++;waveActive=true;document.getElementById('wavebtn').disabled=true;
   const comp=lv.waves[wave-1];spawnQ=[];
   comp.forEach(g=>{for(let i=0;i<g.c;i++)spawnQ.push(g.t);});
@@ -1947,13 +1952,75 @@ function update(dt){
   }
 
   for(const tw of towers){
-    if(tw.ttype==='warden'||tw.ttype==='chrono')continue; // passive only
+    if(tw.ttype==='warden'||tw.ttype==='chrono'||tw.ttype==='overwatch')continue; // passive only
     tw.cd=Math.max(0,tw.cd-dt);if(tw.cd>0)continue;
     const tgt=getTarget(tw);if(!tgt)continue;
     tw.cd=1/(tw.rte*SBONUSES.rteMult());
     tw.aimA=Math.atan2(tgt.y-tw.y,tgt.x-tw.x);
     if(tw.ttype==='phantom'){firePierce(tw,tgt);}
     else spawnProj(tw,tgt);
+  }
+
+  // ── Overwatch: scan → mark → volley ──
+  for(const tw of towers){
+    if(tw.ttype!=='overwatch')continue;
+    tw.owCD=(tw.owCD||0)-dt;
+    tw.aimA=(tw.aimA||0)+dt*1.2; // spin radar dish
+    // While marked target is still alive, pulse the reticle
+    if(tw.owTarget&&!tw.owTarget.dead){
+      tw.owTarget.marked=true;
+      tw.owPulse=(tw.owPulse||0)+dt;
+    } else {
+      if(tw.owTarget)tw.owTarget.marked=false;
+      tw.owTarget=null;
+    }
+    if(tw.owCD>0)continue;
+    // Time to fire — pick best enemy in range (strongest, ignoring cloak)
+    const rng=tw.rng*CELL*SBONUSES.rngMult();
+    let best=null,bestHp=-1;
+    for(const en of enemies){
+      if(en.dead)continue;
+      const d=Math.hypot(en.x-tw.x,en.y-tw.y);
+      if(d>rng)continue;
+      if(en.hp>bestHp){bestHp=en.hp;best=en;}
+    }
+    if(!best)continue;
+    // Mark it
+    if(tw.owTarget)tw.owTarget.marked=false;
+    tw.owTarget=best;
+    best.marked=true;
+    tw.owPulse=0;
+    // Cooldown: 8s base, -1s per upgrade level
+    const upgLv=tw.upgradeLevel||0;
+    tw.owCD=8-upgLv;
+    // Flash notification
+    notify('🎯 OVERWATCH — ALL TOWERS FIRE!','#ff4466');
+    floats.push({x:best.x,y:best.y-best.sz-14,txt:'🎯 LOCKED',col:'#ff4466',life:1.4,sz:13});
+    // Volley: every attack tower fires at the marked enemy immediately
+    for(const atk of towers){
+      if(atk===tw)continue;
+      if(atk.ttype==='warden'||atk.ttype==='chrono'||atk.ttype==='overwatch')continue;
+      if(!best||best.dead)break;
+      atk.aimA=Math.atan2(best.y-atk.y,best.x-atk.x);
+      // Bypass cooldown for this shot
+      if(atk.ttype==='phantom'){
+        // Pierce fires along the line to marked target
+        firePierce(atk,best);
+      } else {
+        // All towers fire even if out of normal range — they can "call in" the shot
+        spawnProj(atk,best);
+      }
+      atk.cd=1/(atk.rte*SBONUSES.rteMult()); // reset cd after forced fire
+    }
+    // Spectacular burst ring at target
+    for(let i=0;i<24;i++){const a=i/24*Math.PI*2,s=60+Math.random()*120;parts.push({x:best.x,y:best.y,vx:Math.cos(a)*s,vy:Math.sin(a)*s-40,col:'#ff4466',life:.7+Math.random()*.3,sz:3+Math.random()*3});}
+    // Radar lock lines from each tower to target (drawn in render, stored briefly)
+    tw.owLines=towers.filter(t=>t!==tw&&t.ttype!=='warden'&&t.ttype!=='chrono'&&t.ttype!=='overwatch').map(t=>({x:t.x,y:t.y}));
+    tw.owLinesLife=0.35;
+  }
+  // Decay overwatch lock lines
+  for(const tw of towers){
+    if(tw.owLinesLife>0)tw.owLinesLife=Math.max(0,tw.owLinesLife-dt);
   }
 
   for(let i=projs.length-1;i>=0;i--){
@@ -1974,6 +2041,15 @@ function update(dt){
     waveActive=false;
     const lv=LEVELS[curLv];
     gold+=lv.goldReward;
+    // Adaptive difficulty: if player took no damage this wave, escalate
+    if(lives>=waveStartLives&&wave>=4){
+      adaptMult=Math.min(2.2, adaptMult+0.18);
+      floats.push({x:CW/2,y:CH/2-20,txt:'⚡ DIFFICULTY UP!',col:'#ff4444',life:2.0,sz:14});
+      notify('⚡ No damage taken — enemies get stronger!','#ff4444');
+    } else if(lives<waveStartLives){
+      // Took damage: ease off slightly (floor 1.0)
+      adaptMult=Math.max(1.0, adaptMult-0.06);
+    }
     notify(`Wave ${wave} cleared! +${lv.goldReward}💰`,'#00ff88');updateHUD();
     if(wave>=lv.waveCount)setTimeout(()=>levelWin(),900);
     else{document.getElementById('wavebtn').disabled=false;updateWavePreview();}
@@ -2036,11 +2112,10 @@ function towerFatigueMult(tw){
 function spawnProj(tw,tgt){
   tw.shots=(tw.shots||0)+1;
   tw.dmgDealt=tw.dmgDealt||0;
-  const xpM=towerXPMult(tw);
   const comboM=towerComboMult(tw);
   const wardM=wardenMult(tw);
   const fatM=towerFatigueMult(tw);
-  projs.push({x:tw.x,y:tw.y,tgt,src:tw,dmg:tw.dmg*SBONUSES.dmgMult()*synergyMult(tw)*xpM*comboM*wardM*fatM,splR:(tw.splR||0)*CELL,slw:tw.slw||0,
+  projs.push({x:tw.x,y:tw.y,tgt,src:tw,dmg:tw.dmg*SBONUSES.dmgMult()*synergyMult(tw)*comboM*wardM*fatM,splR:(tw.splR||0)*CELL,slw:tw.slw||0,
     col:tw.col,spd:270+Math.random()*40,dead:false,
     pierce:tw.ttype==='sniper'||tw.ttype==='missile'||tw.ttype==='omega',
     burn:tw.ttype==='inferno',ttype:tw.ttype,
@@ -2049,11 +2124,10 @@ function spawnProj(tw,tgt){
 
 function firePierce(tw,tgt){
   tw.shots=(tw.shots||0)+1;
-  const xpM=towerXPMult(tw);
   const comboM=towerComboMult(tw);
   const wardM=wardenMult(tw);
   const fatM=towerFatigueMult(tw);
-  const dmg=tw.dmg*SBONUSES.dmgMult()*synergyMult(tw)*xpM*comboM*wardM*fatM;
+  const dmg=tw.dmg*SBONUSES.dmgMult()*synergyMult(tw)*comboM*wardM*fatM;
   const rng=tw.rng*CELL*SBONUSES.rngMult();
   const ax=tw.x,ay=tw.y,bx=tgt.x,by=tgt.y;
   const len=Math.hypot(bx-ax,by-ay);
@@ -2080,7 +2154,7 @@ function firePierce(tw,tgt){
     parts.push({x:ax+ux*len*f+(Math.random()-.5)*3,y:ay+uy*len*f+(Math.random()-.5)*3,
       vx:(Math.random()-.5)*20,vy:(Math.random()-.5)*20,col:tw.col,life:.25+Math.random()*.15,sz:2+Math.random()*2});
   }
-  tw.xp=(tw.xp||0)+hitCount;tw.kills=(tw.kills||0)+hitCount;
+  tw.kills=(tw.kills||0)+hitCount;
 }
 
 function doImpact(p,hx,hy){
@@ -2136,24 +2210,13 @@ function killEnemy(en){
 }
 
 // Tower XP system
-const XP_THRESHOLDS=[8,20,40,70]; // kills needed per XP level (4 XP levels)
-const XP_BONUSES=[0,.12,.25,.40,.60]; // dmg bonus at each XP level
 function grantTowerXP(en){
   for(const tw of towers){
     const d=Math.hypot(en.x-tw.x,en.y-tw.y);
     if(d>tw.rng*CELL*SBONUSES.rngMult()*1.2)continue; // nearby
-    tw.xp=(tw.xp||0)+1;tw.kills=(tw.kills||0)+1;
-    const newLv=XP_THRESHOLDS.findIndex(t=>tw.xp<=t);
-    const xpLv=newLv===-1?XP_THRESHOLDS.length:newLv;
-    if(xpLv>(tw.xpLv||0)){
-      tw.xpLv=xpLv;
-      const bonus=Math.round(XP_BONUSES[xpLv]*100);
-      notify(`${tw.icon} ${tw.name} XP Lv${xpLv}! +${bonus}% dmg`,'#ffe066');
-      floats.push({x:tw.x,y:tw.y-30,txt:`XP LV${xpLv}!`,col:'#ffe066',life:1.4,sz:12});
-    }
+    tw.kills=(tw.kills||0)+1;
   }
 }
-function towerXPMult(tw){return 1+(XP_BONUSES[tw.xpLv||0]||0);}
 
 // Tower combo bonus: 3+ adjacent same-type towers get +20% dmg
 function towerComboMult(tw){
@@ -2168,7 +2231,7 @@ function spawnAt(type,pi,pathB){
   const hp=50*(1+curLv*.15)*ed.hpm*lv.hm;
   const idx=Math.min(pi,PATH.length-1);const[pr,pc]=PATH[idx];
   enemies.push({type,x:pc*CELL+CELL/2+(Math.random()-.5)*CELL,y:pr*CELL+CELL/2+(Math.random()-.5)*CELL,
-    pathIdx:idx,pathB,hp,maxHp:hp,sp:0.9*ed.spm*lv.sm,slow:0,dead:false,
+    pathIdx:idx,pathB,hp,maxHp:hp,sp:0.9*ed.spm*lv.sm*Math.sqrt(adaptMult),slow:0,dead:false,
     col:ed.col,sz:ed.sz,shape:ed.shape,armor:ed.armor||0,liveCost:ed.lives||1,
     heals:ed.heals||false,teleports:ed.teleports||false,teleCD:0,angle:0,burnTime:0,burnDmg:0,ed,_sum:true});
 }
@@ -2176,7 +2239,7 @@ function spawnAt(type,pi,pathB){
 // ══════════════════════════════════════
 //  RENDER
 // ══════════════════════════════════════
-const TERR=[['#091209','#0d1a0d'],['#181008','#201408'],['#08101a','#0a1228'],['#160808','#220e0e'],['#060614','#090920'],['#0e1608','#141e08'],['#141018','#1c1424'],['#080e18','#0a1220']];
+const TERR=[['#0c1e0a','#102412'],['#1a1208','#221808'],['#142008','#1c2c0a'],['#1c0a0a','#280c0c'],['#0c0a18','#090920'],['#0e1608','#141e08'],['#141018','#1c1424'],['#080e18','#0a1220']];
 
 function render(){
   CX.save();
@@ -2229,6 +2292,40 @@ function render(){
     CX.globalAlpha=.06;CX.fillStyle=tw.col;CX.beginPath();CX.arc(tw.x,tw.y,rng,0,Math.PI*2);CX.fill();
     CX.globalAlpha=1;CX.restore();
   }
+  // Overwatch: radar scan ring + lock-on lines
+  for(const tw of towers){
+    if(tw.ttype!=='overwatch')continue;
+    const rng=tw.rng*CELL*SBONUSES.rngMult();
+    const t=Date.now()*.001;
+    const upgLv=tw.upgradeLevel||0;
+    const cdMax=8-upgLv;
+    const cdPct=Math.max(0,Math.min(1,(tw.owCD||0)/cdMax));
+    // Radar sweep arc
+    CX.save();
+    CX.strokeStyle='#ff4466';CX.lineWidth=1.5;
+    CX.globalAlpha=0.12+Math.sin(t*3)*.06;
+    CX.beginPath();CX.arc(tw.x,tw.y,rng,0,Math.PI*2);CX.stroke();
+    // Spinning sweep line
+    const sweepA=(t*2)%(Math.PI*2);
+    const sweepGrad=CX.createConicalGradient?null:null;
+    CX.globalAlpha=0.25;CX.strokeStyle='#ff4466';CX.lineWidth=1.5;
+    CX.beginPath();CX.moveTo(tw.x,tw.y);CX.lineTo(tw.x+Math.cos(sweepA)*rng,tw.y+Math.sin(sweepA)*rng);CX.stroke();
+    // CD arc showing recharge
+    if(cdPct>0){
+      CX.globalAlpha=0.5;CX.strokeStyle='#ff4466';CX.lineWidth=3;
+      CX.beginPath();CX.arc(tw.x,tw.y,CELL*.55,-Math.PI/2,-Math.PI/2+Math.PI*2*(1-cdPct));CX.stroke();
+    }
+    CX.globalAlpha=1;CX.restore();
+    // Lock lines flash after firing
+    if(tw.owLinesLife>0&&tw.owTarget&&!tw.owTarget.dead){
+      const alpha=tw.owLinesLife/.35;
+      CX.save();CX.globalAlpha=alpha*.8;CX.strokeStyle='#ff4466';CX.lineWidth=1.2;CX.shadowColor='#ff4466';CX.shadowBlur=8;CX.setLineDash([4,4]);
+      for(const src of (tw.owLines||[])){
+        CX.beginPath();CX.moveTo(src.x,src.y);CX.lineTo(tw.owTarget.x,tw.owTarget.y);CX.stroke();
+      }
+      CX.setLineDash([]);CX.restore();
+    }
+  }
   // Synergy lines
   for(const tw of towers){if(!getSynergy(tw))continue;const partner=towers.find(o=>o!==tw&&(tw.ttype==='frost'?o.ttype==='tesla':o.ttype==='frost')&&Math.hypot(o.r-tw.r,o.c-tw.c)<=2);if(partner){CX.save();CX.strokeStyle='rgba(191,95,255,.35)';CX.lineWidth=2;CX.setLineDash([4,4]);CX.beginPath();CX.moveTo(tw.x,tw.y);CX.lineTo(partner.x,partner.y);CX.stroke();CX.setLineDash([]);CX.restore();}}
   for(const tw of towers){if(tw.ttype!=='laser')continue;const tgt=getTarget(tw);if(!tgt||tgt.dead)continue;CX.save();const g=CX.createLinearGradient(tw.x,tw.y,tgt.x,tgt.y);g.addColorStop(0,tw.col);g.addColorStop(1,'transparent');CX.strokeStyle=g;CX.lineWidth=3;CX.shadowColor=tw.col;CX.shadowBlur=18;CX.beginPath();CX.moveTo(tw.x,tw.y);CX.lineTo(tgt.x,tgt.y);CX.stroke();CX.restore();}
@@ -2244,6 +2341,30 @@ function render(){
   }
 
   for(const en of enemies){if(!en.dead)drawEnemy(en);}
+  // Overwatch: reticle on marked target
+  for(const en of enemies){
+    if(en.dead||!en.marked)continue;
+    const t=Date.now()*.004;
+    const r=en.sz+8+Math.sin(t)*3;
+    CX.save();CX.translate(en.x,en.y);
+    // Rotating corner brackets
+    CX.strokeStyle='#ff4466';CX.lineWidth=2.5;CX.shadowColor='#ff4466';CX.shadowBlur=12;
+    CX.globalAlpha=0.85+Math.sin(t*2)*.15;
+    const rot=t*.5;
+    CX.rotate(rot);
+    const br=r*.55; // bracket reach
+    for(let q=0;q<4;q++){
+      CX.save();CX.rotate(q*Math.PI/2);
+      CX.beginPath();CX.moveTo(r,-br);CX.lineTo(r,-r);CX.lineTo(br,-r);CX.stroke();
+      CX.restore();
+    }
+    // Centre crosshair dot
+    CX.fillStyle='#ff4466';CX.beginPath();CX.arc(0,0,3,0,Math.PI*2);CX.fill();
+    // "TARGET" label
+    CX.rotate(-rot);CX.font='bold 8px Rajdhani';CX.textAlign='center';CX.fillStyle='#ff4466';
+    CX.fillText('TARGET',0,-r-6);
+    CX.globalAlpha=1;CX.shadowBlur=0;CX.restore();
+  }
   for(const tw of towers)drawTowerTop(tw);
   CX.save();for(const p of parts){CX.globalAlpha=Math.max(0,p.life);CX.fillStyle=p.col;CX.shadowColor=p.col;CX.shadowBlur=5;CX.beginPath();CX.arc(p.x,p.y,p.sz,0,Math.PI*2);CX.fill();}CX.globalAlpha=1;CX.shadowBlur=0;CX.restore();
   CX.save();for(const f of floats){CX.globalAlpha=Math.min(1,f.life*1.5);CX.font=`bold ${f.sz}px Rajdhani`;CX.textAlign='center';CX.strokeStyle='rgba(0,0,0,.7)';CX.lineWidth=2.5;CX.strokeText(f.txt,f.x,f.y);CX.fillStyle=f.col;CX.fillText(f.txt,f.x,f.y);}CX.globalAlpha=1;CX.textAlign='left';CX.restore();
@@ -2256,7 +2377,7 @@ function drawPath(pts,dashCol){
   CX.save();CX.lineCap='round';CX.lineJoin='round';
   CX.strokeStyle='rgba(0,0,0,.55)';CX.lineWidth=CELL-1;
   CX.beginPath();pts.forEach(([r,c],i)=>{const x=c*CELL+CELL/2,y=r*CELL+CELL/2;i?CX.lineTo(x,y):CX.moveTo(x,y);});CX.stroke();
-  const pc=['#182a14','#2a1e0a','#0e1830','#2a0e0e','#0e0e24','#141a08','#1a0e24','#081420'];
+  const pc=['#1e3a18','#342808','#18200a','#340e0e','#12183a','#1c2610','#2a1028','#0c1c28'];
   CX.strokeStyle=pc[curLv%pc.length];CX.lineWidth=CELL-5;
   CX.beginPath();pts.forEach(([r,c],i)=>{const x=c*CELL+CELL/2,y=r*CELL+CELL/2;i?CX.lineTo(x,y):CX.moveTo(x,y);});CX.stroke();
   CX.strokeStyle=dashCol;CX.lineWidth=1.5;CX.setLineDash([CELL*.2,CELL*.3]);CX.lineDashOffset=-(Date.now()*.02)%CELL;
@@ -2269,14 +2390,12 @@ function drawTowerBase(tw){
   roundRect(CX,-s,-s,s*2,s*2,5);CX.fillStyle='#090b1c';CX.fill();
   const syn=getSynergy(tw);
   const combo=towerComboMult(tw);
-  const xpLv=tw.xpLv||0;
-  // Border colour priority: xp4 > max upgrade > combo > synergy > selected > default
+  // Border colour priority: max upgrade > combo > synergy > selected > default
   let strokeCol=tw.col+'88', strokeW=1.5;
   if(tw===ttTower){strokeCol=tw.col+'ff';strokeW=2;}
   if(syn){strokeCol='#bf5fff';strokeW=2;}
   if(combo>1){strokeCol='#00ffaa';strokeW=2;}
   if(tw.upgradeLevel>=3){strokeCol='#ffd700';strokeW=2.5;}
-  if(xpLv>=4){strokeCol='#ffffff';strokeW=3;}
   const fatigue=towerFatigueMult(tw);
   if(fatigue<1){strokeCol='#ff3300';strokeW=2;} // fatigued — red override
   CX.strokeStyle=strokeCol;CX.lineWidth=strokeW;CX.stroke();
@@ -2287,23 +2406,7 @@ function drawTowerBase(tw){
   }
   // Upgrade pips
   for(let i=0;i<tw.upgradeLevel;i++){CX.fillStyle=tw.upgradeLevel>=3?'#ffd700':tw.col;CX.beginPath();CX.arc(-5+i*5,s-5,2.5,0,Math.PI*2);CX.fill();}
-  // XP bar across top of tower
-  if(xpLv<XP_THRESHOLDS.length){
-    const prevXP=xpLv>0?XP_THRESHOLDS[xpLv-1]:0;
-    const nextXP=XP_THRESHOLDS[xpLv];
-    const pct=Math.min(1,(tw.xp-prevXP)/(nextXP-prevXP));
-    const bw=s*1.8,bh=3,bx=-bw/2,by=-s-6;
-    CX.fillStyle='rgba(0,0,0,.6)';CX.fillRect(bx,by,bw,bh);
-    const xpCols=['#ffe066','#ffaa00','#ff6600','#ff3300'];
-    CX.fillStyle=xpCols[Math.min(xpLv,xpCols.length-1)];
-    CX.fillRect(bx,by,bw*pct,bh);
-  } else {
-    // Max XP — gold shimmer line
-    const by=-s-6,bx=-s*.9;
-    CX.fillStyle='#ffe066';CX.fillRect(bx,by,s*1.8,3);
-  }
-  // XP level stars (top-left corner of base)
-  if(xpLv>0){CX.font=`bold ${Math.max(7,CELL*.18)}px Exo 2`;CX.fillStyle='#ffe066';CX.shadowColor='#ffe066';CX.shadowBlur=6;CX.textAlign='center';CX.fillText('★'.repeat(xpLv),-s*.3,-s*.2);CX.shadowBlur=0;CX.textAlign='left';}
+  // (XP system removed)
   // Combo indicator
   if(combo>1){CX.font=`bold ${Math.max(7,CELL*.17)}px Exo 2`;CX.fillStyle='#00ffaa';CX.textAlign='center';CX.fillText(combo>=1.35?'×3':'×2',s*.3,-s*.2);CX.textAlign='left';}
   const pi={first:'',last:'◀',strong:'↑',weak:'↓'};
@@ -2347,7 +2450,31 @@ function drawTowerTop(tw){
       CX.fillStyle=tw.col;CX.beginPath();CX.moveTo(0,0);CX.lineTo(Math.cos(ct)*8,Math.sin(ct)*8);CX.lineTo(Math.cos(ct)*.5,Math.sin(ct)*.5);CX.closePath();CX.fill();
       CX.beginPath();CX.moveTo(0,0);CX.lineTo(Math.cos(-ct*.4)*5,Math.sin(-ct*.4)*5);CX.stroke();
       CX.fillStyle=tw.col;CX.beginPath();CX.arc(0,0,2,0,Math.PI*2);CX.fill();break;
-  }
+    case 'overwatch':{
+      const owt=Date.now()*.004;
+      const upgLv=tw.upgradeLevel||0;
+      const cdMax=8-upgLv;
+      const cdFrac=Math.max(0,Math.min(1,1-(tw.owCD||0)/cdMax)); // 0=charging, 1=ready
+      const ready=cdFrac>=1;
+      // Dish arms
+      CX.strokeStyle=tw.col;CX.lineWidth=2;
+      for(let a=0;a<3;a++){
+        CX.save();CX.rotate(a*Math.PI*2/3);
+        CX.beginPath();CX.moveTo(0,0);CX.lineTo(0,-11);CX.stroke();
+        CX.fillStyle=tw.col;CX.beginPath();CX.arc(0,-11,3,0,Math.PI*2);CX.fill();
+        CX.restore();
+      }
+      // Central eye/lens — pulses red when ready
+      CX.fillStyle=ready?'#ff4466':'#330011';
+      CX.shadowColor='#ff4466';CX.shadowBlur=ready?14+Math.sin(owt*6)*6:4;
+      CX.beginPath();CX.arc(0,0,5,0,Math.PI*2);CX.fill();
+      CX.fillStyle='#fff';CX.beginPath();CX.arc(-1.5,-1.5,2,0,Math.PI*2);CX.fill();
+      // Outer ring
+      CX.strokeStyle=tw.col;CX.lineWidth=1.5;CX.globalAlpha=ready?.7+Math.sin(owt*4)*.3:.3;
+      CX.beginPath();CX.arc(0,0,12,0,Math.PI*2);CX.stroke();
+      CX.globalAlpha=1;CX.shadowBlur=0;break;
+    }
+  } // end switch
   CX.shadowBlur=0;CX.restore();
 }
 
@@ -2417,7 +2544,7 @@ function showStats(afterFn){
   sorted.forEach((tw,idx)=>{
     const dmg=tw.dmgDealt||0;
     const pct=maxDmg>0?dmg/maxDmg:0;
-    const xpStr='⭐'.repeat(tw.xpLv||0)||'·';
+    const xpStr='';
     const mvp=idx===0&&dmg>0?' 👑':'';
     const bar=`<div style="height:6px;background:#1a1f3a;border-radius:3px;margin:4px 0 2px;overflow:hidden;"><div style="height:100%;width:${Math.round(pct*100)}%;background:${tw.col};border-radius:3px;transition:width .3s;"></div></div>`;
     const item=document.createElement('div');
@@ -2425,7 +2552,7 @@ function showStats(afterFn){
     item.innerHTML=`<div style="display:flex;align-items:center;justify-content:space-between;gap:8px;">
       <span style="font-size:1.1rem">${tw.icon||'🗼'}</span>
       <span style="flex:1;color:#e8eaf6;font-size:.88rem;font-weight:600;">${tw.name}${mvp}</span>
-      <span style="color:#778;font-size:.75rem;">Lv${tw.upgradeLevel||0} ${xpStr}</span>
+      <span style="color:#778;font-size:.75rem;">Lv${tw.upgradeLevel||0}</span>
       <span style="color:#ffd700;font-size:.85rem;font-weight:700;">${dmg>=1e6?(dmg/1e6).toFixed(2)+'M':dmg>=1e3?(dmg/1e3).toFixed(1)+'K':Math.ceil(dmg)}</span>
     </div>${bar}
     <div style="display:flex;gap:12px;font-size:.72rem;color:#556;">
@@ -2610,7 +2737,7 @@ function updateWavePreview(){
 // ══════════════════════════════════════
 //  NOTIFICATIONS
 // ══════════════════════════════════════
-function notify(txt,col='#00d4ff'){
+function notify(txt,col='#ff8c00'){
   const d=document.createElement('div');d.className='notif';d.textContent=txt;d.style.color=col;d.style.borderColor=col;
   document.getElementById('notifs').appendChild(d);setTimeout(()=>d.remove(),2500);
 }
