@@ -218,6 +218,18 @@ html,body{width:100%;height:100%;overflow:hidden;background:#06070f;font-family:
 .wp-count{font-family:'Exo 2',sans-serif;font-size:9px;font-weight:700;color:#c8d8ff;}
 .wp-name{font-size:8px;color:#3a5878;}
 
+/* ── CHEAT MODAL ── */
+#cheat-modal{position:fixed;inset:0;z-index:900;display:none;align-items:center;justify-content:center;background:rgba(0,0,0,.85);}
+#cheat-modal.show{display:flex;}
+#cheat-box{background:#0a0800;border:1px solid #33ff00;border-radius:10px;padding:28px 32px;font-family:'Exo 2',sans-serif;text-align:center;box-shadow:0 0 40px rgba(50,255,0,.2);}
+#cheat-box h2{color:#33ff00;font-size:14px;letter-spacing:6px;margin-bottom:4px;}
+#cheat-box p{color:#226600;font-size:10px;letter-spacing:2px;margin-bottom:18px;}
+#cheat-amount{background:#040800;border:1px solid #33ff0055;color:#33ff00;font-family:'Exo 2',sans-serif;font-size:18px;font-weight:700;text-align:center;padding:10px 20px;border-radius:6px;width:140px;outline:none;}
+#cheat-amount:focus{border-color:#33ff00;}
+.cheat-btns{display:flex;gap:10px;margin-top:16px;justify-content:center;}
+.cheat-btn{padding:9px 20px;border:none;font-family:'Exo 2',sans-serif;font-size:11px;font-weight:700;cursor:pointer;border-radius:5px;letter-spacing:2px;}
+#cheat-confirm{background:#33ff00;color:#000;}
+#cheat-cancel{background:transparent;border:1px solid #33ff0044;color:#33ff00;}
 /* ── ENDLESS NODE ── */
 .endless-wrap{grid-column:1/-1;display:flex;flex-direction:column;align-items:center;margin-top:8px;}
 .endless-node{background:linear-gradient(135deg,#1a0800,#2a1000)!important;border:2px solid #ff6600!important;box-shadow:0 0 20px rgba(255,100,0,.3),0 0 40px rgba(255,100,0,.1)!important;animation:endlessPulse 2s ease-in-out infinite;}
@@ -253,6 +265,8 @@ html,body{width:100%;height:100%;overflow:hidden;background:#06070f;font-family:
 .g-cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:12px;margin-top:8px;}
 .g-card{background:rgba(255,255,255,.025);border-radius:8px;border:1px solid rgba(255,255,255,.07);overflow:hidden;transition:.15s;}
 .g-card:hover{border-color:rgba(180,140,60,.3);background:rgba(180,140,60,.04);}
+.g-card-premium{border-color:rgba(255,100,0,.25)!important;background:rgba(30,8,0,.4)!important;}
+.g-card-premium:hover{border-color:#ff6600!important;background:rgba(50,15,0,.5)!important;}
 .g-card-canvas-wrap{background:rgba(0,0,0,.5);display:flex;align-items:center;justify-content:center;height:90px;position:relative;}
 .g-card-canvas-wrap canvas{display:block;}
 .g-card-body{padding:9px 11px;}
@@ -318,6 +332,19 @@ html,body{width:100%;height:100%;overflow:hidden;background:#06070f;font-family:
     </div>
   </div>
   <div id="map-grid"></div>
+</div>
+
+<!-- CHEAT MODAL -->
+<div id="cheat-modal">
+  <div id="cheat-box">
+    <h2>💻 HACKER MODE</h2>
+    <p>HOW MANY TOKENS DO YOU WANT?</p>
+    <input id="cheat-amount" type="number" min="1" max="9999" value="100" autocomplete="off"/>
+    <div class="cheat-btns">
+      <button class="cheat-btn" id="cheat-confirm" onclick="confirmCheat()">✓ INJECT</button>
+      <button class="cheat-btn" id="cheat-cancel" onclick="closeCheat()">✕ CANCEL</button>
+    </div>
+  </div>
 </div>
 
 <!-- FIELD GUIDE MODAL -->
@@ -807,13 +834,15 @@ function openGuide(){
   guideOpen=true;
   showGuidePage('enemies');
 }
-function closeGuide(){document.getElementById('guide-modal').classList.remove('show');guideOpen=false;}
+function closeGuide(){document.getElementById('guide-modal').classList.remove('show');guideOpen=false;stopGuideAnims();}
 function showGuidePage(id){
   document.querySelectorAll('.gpage').forEach(p=>p.classList.remove('on'));
   document.querySelectorAll('.gtab').forEach(t=>t.classList.remove('on'));
   document.getElementById('gpage-'+id).classList.add('on');
   document.getElementById('gtab-'+id).classList.add('on');
-  if(!document.getElementById('gpage-'+id)._built) buildGuidePage(id);
+  // Always rebuild animated pages; cache static ones
+  if(id==='enemies'||id==='towers'){stopGuideAnims();buildGuidePage(id);}
+  else if(!document.getElementById('gpage-'+id)._built) buildGuidePage(id);
 }
 
 function buildGuidePage(id){
@@ -826,98 +855,431 @@ function buildGuidePage(id){
 }
 
 // ── Mini canvas renderer reusing game draw logic ──
-function makeEnemyCanvas(type,sz=70){
-  const cv=document.createElement('canvas');cv.width=sz;cv.height=sz;
+// ══════════════════════════════════════
+//  GUIDE SIMULATION PREVIEWS
+// ══════════════════════════════════════
+let guideAnims=[];
+function stopGuideAnims(){guideAnims.forEach(a=>cancelAnimationFrame(a.raf));guideAnims=[];}
+// Each card is a self-contained mini-sim: enemies walk a looping path
+// and perform their actual abilities; towers track, aim, and fire.
+
+function makeAnimatedEnemyPreview(type, sz=90){
+  const cv=document.createElement('canvas'); cv.width=sz; cv.height=sz;
   const cx=cv.getContext('2d');
-  const ed=EDEFS[type];if(!ed)return cv;
-  const esz=Math.min(ed.sz*2.2, sz*.38);
-  cx.save();cx.translate(sz/2,sz/2);
-  // glow
-  cx.shadowColor=ed.col;cx.shadowBlur=16;
-  cx.fillStyle=ed.col;cx.strokeStyle='rgba(255,255,255,.3)';cx.lineWidth=1.5;
-  const drawShape=(ctx,shape,r,col)=>{
-    ctx.fillStyle=col||ed.col;
+  const ed=EDEFS[type]; if(!ed) return cv;
+
+  // Scale enemy size so it's visible but not huge
+  const esz=Math.min(ed.sz*1.6, sz*.28);
+  const cx_=sz/2; // center x
+  // Simple looping path: left→right across mid-height, then wrap
+  const pathY=sz*.55;
+  const speed=sz*.018 * (ed.spm||1) * 0.7; // pixels per frame, scaled
+
+  // Sim state
+  let ex=sz*.05, ey=pathY; // enemy position
+  let slow=0, burnTime=0, t=0;
+  let teleCD=6+Math.random()*4;
+  // Summon/split minions
+  let minions=[]; // {x,y,dx,life,col,sz}
+  // Healer aura target (a fake ally ahead)
+  // Explosion particles
+  let particles=[];
+  // Bomber fuse flash
+  let fuseT=0;
+  // IronSplit: spawn two armored ghosts on "death" (when reaching right edge)
+  let splitCooldown=0;
+
+  function drawEnemyShape(ctx,x,y,r,shape,col,armor,mega){
+    ctx.save(); ctx.translate(x,y);
+    ctx.fillStyle=col; ctx.strokeStyle='rgba(255,255,255,.3)'; ctx.lineWidth=1.2;
+    ctx.shadowColor=col; ctx.shadowBlur=8;
     switch(shape){
       case 'circle':  ctx.beginPath();ctx.arc(0,0,r,0,Math.PI*2);ctx.fill();ctx.stroke();break;
-      case 'diamond': ctx.save();ctx.rotate(Math.PI/4);ctx.fillRect(-r*.75,-r*.75,r*1.5,r*1.5);ctx.strokeRect(-r*.75,-r*.75,r*1.5,r*1.5);ctx.restore();break;
+      case 'diamond': ctx.save();ctx.rotate(Math.PI/4+t*.015);ctx.fillRect(-r*.75,-r*.75,r*1.5,r*1.5);ctx.strokeRect(-r*.75,-r*.75,r*1.5,r*1.5);ctx.restore();break;
       case 'square':  ctx.fillRect(-r,-r,r*2,r*2);ctx.strokeRect(-r,-r,r*2,r*2);break;
-      case 'hex':     ctx.beginPath();for(let i=0;i<6;i++){const a=i*Math.PI/3-Math.PI/6;ctx.lineTo(Math.cos(a)*r,Math.sin(a)*r);}ctx.closePath();ctx.fill();ctx.stroke();break;
+      case 'hex':     ctx.beginPath();for(let i=0;i<6;i++){const a=i*Math.PI/3-Math.PI/6+t*.01;ctx.lineTo(Math.cos(a)*r,Math.sin(a)*r);}ctx.closePath();ctx.fill();ctx.stroke();break;
       case 'cross':   ctx.fillRect(-r*.28,-r,r*.56,r*2);ctx.fillRect(-r,-r*.28,r*2,r*.56);break;
-      case 'star':    ctx.beginPath();for(let i=0;i<8;i++){const a=i*Math.PI/4,r2=i%2?r*.5:r;ctx.lineTo(Math.cos(a)*r2,Math.sin(a)*r2);}ctx.closePath();ctx.fill();ctx.stroke();break;
+      case 'star':    ctx.beginPath();for(let i=0;i<8;i++){const a=i*Math.PI/4+t*.02,r2=i%2?r*.5:r;ctx.lineTo(Math.cos(a)*r2,Math.sin(a)*r2);}ctx.closePath();ctx.fill();ctx.stroke();break;
       case 'boss':
-        ctx.beginPath();for(let i=0;i<8;i++){const a=i*Math.PI/4,r2=i%2?r*.65:r;ctx.lineTo(Math.cos(a)*r2,Math.sin(a)*r2);}ctx.closePath();ctx.fill();ctx.stroke();
+        ctx.beginPath();for(let i=0;i<8;i++){const a=i*Math.PI/4+t*.006,r2=i%2?r*.65:r;ctx.lineTo(Math.cos(a)*r2,Math.sin(a)*r2);}ctx.closePath();ctx.fill();ctx.stroke();
         ctx.fillStyle='rgba(0,0,0,.5)';ctx.beginPath();ctx.arc(0,0,r*.42,0,Math.PI*2);ctx.fill();
         ctx.fillStyle='#fff';ctx.beginPath();ctx.arc(-r*.24,-r*.1,r*.14,0,Math.PI*2);ctx.fill();ctx.beginPath();ctx.arc(r*.24,-r*.1,r*.14,0,Math.PI*2);ctx.fill();
-        ctx.fillStyle=ed.mega?'#f0f':'#f00';ctx.beginPath();ctx.arc(-r*.24,-r*.1,r*.08,0,Math.PI*2);ctx.fill();ctx.beginPath();ctx.arc(r*.24,-r*.1,r*.08,0,Math.PI*2);ctx.fill();break;
+        ctx.fillStyle=mega?'#f0f':'#f00';ctx.beginPath();ctx.arc(-r*.24,-r*.1,r*.08,0,Math.PI*2);ctx.fill();ctx.beginPath();ctx.arc(r*.24,-r*.1,r*.08,0,Math.PI*2);ctx.fill();break;
     }
-  };
-  drawShape(cx, ed.shape, esz);
-  // Rage glow for bosses
-  if(type==='boss'||type==='megaboss'||type==='teleboss'){
-    cx.globalAlpha=.35;cx.fillStyle='#ff0000';cx.shadowColor='#ff0000';cx.shadowBlur=20;
-    cx.beginPath();cx.arc(0,0,esz+10,0,Math.PI*2);cx.fill();
-    cx.globalAlpha=1;cx.shadowBlur=16;
-    drawShape(cx, ed.shape, esz); // redraw on top
+    ctx.shadowBlur=0; ctx.restore();
   }
-  // Armored sheen
-  if(ed.armor){
-    cx.globalAlpha=.3;cx.strokeStyle='rgba(255,255,255,.7)';cx.lineWidth=3;
-    cx.beginPath();cx.arc(0,0,esz*.7,-Math.PI*.7,-Math.PI*.1);cx.stroke();
-    cx.globalAlpha=1;
+
+  function frame(){
+    t+=0.022;
+    cx.clearRect(0,0,sz,sz);
+
+    // Background
+    cx.fillStyle='rgba(8,12,24,.9)'; cx.fillRect(0,0,sz,sz);
+    // Path line
+    cx.strokeStyle='rgba(255,255,255,.06)'; cx.lineWidth=esz*2+2; cx.lineCap='round';
+    cx.beginPath(); cx.moveTo(sz*.03,pathY); cx.lineTo(sz*.97,pathY); cx.stroke();
+
+    // ── MOVE ──
+    const actualSpeed=speed*(1-Math.min(.88,slow*.8));
+    ex+=actualSpeed;
+    slow=Math.max(0,slow-0.008);
+    if(burnTime>0)burnTime-=0.04;
+    fuseT+=0.04;
+
+    // ── TYPE-SPECIFIC ABILITIES ──
+
+    // TELEPORT BOSS: jump forward randomly
+    if(ed.teleports){
+      teleCD-=0.03;
+      if(teleCD<=0){
+        teleCD=5+Math.random()*4;
+        const jump=sz*.25+Math.random()*sz*.2;
+        for(let i=0;i<8;i++) particles.push({x:ex,y:ey,vx:(Math.random()-.5)*2,vy:(Math.random()-.5)*2,col:'#ff44ff',life:1,sz:2.5});
+        ex=Math.min(sz*.9,ex+jump);
+      }
+      // Shimmer
+      cx.globalAlpha=.2+Math.sin(t*2)*.12; cx.fillStyle='#ff44ff';
+      cx.beginPath(); cx.arc(ex,ey,esz+sz*.1,0,Math.PI*2); cx.fill(); cx.globalAlpha=1;
+    }
+
+    // BOSS: summon minions periodically
+    if(ed.summon&&!ed.mega){
+      if(Math.floor(t*10)%120===0||minions.length===0){
+        for(let i=0;i<2;i++) minions.push({x:ex+(Math.random()-.5)*10,y:ey,dx:speed*.6,life:1.8,col:EDEFS.normal.col,sz:4});
+      }
+      // Rage glow
+      cx.globalAlpha=.25+Math.sin(t*2)*.15; cx.fillStyle='#ff0000'; cx.shadowColor='#ff0000'; cx.shadowBlur=10;
+      cx.beginPath(); cx.arc(ex,ey,esz+sz*.12,0,Math.PI*2); cx.fill(); cx.globalAlpha=1; cx.shadowBlur=0;
+    }
+
+    // MEGABOSS: summon boss minions
+    if(ed.mega){
+      if(Math.floor(t*10)%200===0||minions.length===0)
+        minions.push({x:ex-(sz*.12),y:ey,dx:speed*.5,life:2,col:'#ff3333',sz:6,shape:'boss'});
+      cx.globalAlpha=.35+Math.sin(t*2)*.18; cx.fillStyle='#ff00ff'; cx.shadowColor='#ff00ff'; cx.shadowBlur=12;
+      cx.beginPath(); cx.arc(ex,ey,esz+sz*.14,0,Math.PI*2); cx.fill(); cx.globalAlpha=1; cx.shadowBlur=0;
+    }
+
+    // HEALER: green aura ring + heal particle to nearby minion
+    if(ed.heals){
+      cx.globalAlpha=.15+Math.sin(t*.8)*.08; cx.strokeStyle='#00ff88'; cx.lineWidth=1.5;
+      cx.beginPath(); cx.arc(ex,ey,esz+sz*.2,0,Math.PI*2); cx.stroke(); cx.globalAlpha=1;
+      // Heal pulse
+      if(Math.floor(t*10)%60===0) particles.push({x:ex,y:ey,vx:sz*.015,vy:0,col:'#00ff88',life:1,sz:3,heal:true});
+    }
+
+    // BOMBER: fuse spark + death explosion on wrap
+    if(ed.explodes){
+      const fuse=Math.sin(fuseT*6)>.5;
+      if(fuse){ cx.fillStyle='#ffee00'; cx.shadowColor='#ffee00'; cx.shadowBlur=5; cx.beginPath(); cx.arc(ex+esz*.7,ey-esz*.7,2.5,0,Math.PI*2); cx.fill(); cx.shadowBlur=0; }
+    }
+
+    // SPLIT / IRONSPLIT: spawn ghosts on wrap
+    splitCooldown=Math.max(0,splitCooldown-1);
+
+    // SLOW indicator (from incoming frost — shown as blue overlay)
+    if(slow>.1){
+      cx.globalAlpha=slow*.45; cx.fillStyle='#88ddff';
+      cx.beginPath(); cx.arc(ex,ey,esz+5,0,Math.PI*2); cx.fill(); cx.globalAlpha=1;
+    }
+
+    // BURN
+    if(burnTime>0){
+      cx.globalAlpha=.4; cx.fillStyle='#ff8800';
+      cx.beginPath(); cx.arc(ex,ey,esz+4,0,Math.PI*2); cx.fill(); cx.globalAlpha=1;
+    }
+
+    // ── DRAW ENEMY ──
+    drawEnemyShape(cx,ex,ey,esz,ed.shape,ed.col,ed.armor,ed.mega);
+
+    // Armour sheen
+    if(ed.armor){
+      const sweep=((t*.5)%(Math.PI*2))-Math.PI*.6;
+      cx.globalAlpha=.5; cx.strokeStyle='rgba(255,255,255,.9)'; cx.lineWidth=2;
+      cx.beginPath(); cx.arc(ex,ey,esz*.8,sweep,sweep+.8); cx.stroke(); cx.globalAlpha=1;
+    }
+
+    // HP bar
+    const bw=esz*2.8,bh=3,bx=ex-esz*1.4,by=ey-esz-8;
+    cx.fillStyle='rgba(0,0,0,.7)'; cx.fillRect(bx-1,by-1,bw+2,bh+2);
+    cx.fillStyle='#300'; cx.fillRect(bx,by,bw,bh);
+    cx.fillStyle='#00ff88'; cx.fillRect(bx,by,bw*.72,bh);
+
+    // ── MINIONS ──
+    for(let i=minions.length-1;i>=0;i--){
+      const m=minions[i]; m.x+=m.dx; m.life-=0.012;
+      if(m.life<=0||m.x>sz*.95){minions.splice(i,1);continue;}
+      cx.globalAlpha=Math.min(1,m.life);
+      drawEnemyShape(cx,m.x,m.y,m.sz,m.shape||'circle',m.col,false,false);
+      cx.globalAlpha=1;
+    }
+
+    // ── PARTICLES ──
+    for(let i=particles.length-1;i>=0;i--){
+      const p=particles[i]; p.x+=p.vx; p.y+=p.vy; p.life-=0.035;
+      if(p.life<=0){particles.splice(i,1);continue;}
+      cx.globalAlpha=Math.max(0,p.life); cx.fillStyle=p.col; cx.shadowColor=p.col; cx.shadowBlur=4;
+      cx.beginPath(); cx.arc(p.x,p.y,p.sz*(p.heal?p.life:1),0,Math.PI*2); cx.fill();
+      cx.globalAlpha=1; cx.shadowBlur=0;
+    }
+
+    // ── WRAP / RESET ──
+    if(ex>sz*.97){
+      // Spawn split ghosts
+      if(ed.splits&&splitCooldown<=0){
+        splitCooldown=40;
+        for(let i=0;i<2;i++) particles.push({x:sz*.06+(i*12),y:pathY,vx:speed*1.3,vy:0,col:EDEFS.fast.col,life:1.5,sz:4});
+      }
+      if(ed.splitArmored&&splitCooldown<=0){
+        splitCooldown=40;
+        for(let i=0;i<2;i++) minions.push({x:sz*.06+(i*14),y:pathY,dx:speed*.7,life:1.6,col:EDEFS.armored.col,sz:5});
+      }
+      // Bomber explosion
+      if(ed.explodes){
+        for(let i=0;i<14;i++){const a=Math.random()*Math.PI*2;particles.push({x:sz*.9,y:pathY,vx:Math.cos(a)*sz*.025,vy:Math.sin(a)*sz*.025,col:'#ff8800',life:1.2,sz:3});}
+      }
+      ex=sz*.05;
+    }
+
+    guideAnims.push({raf:requestAnimationFrame(frame)});
   }
-  // Healer aura
-  if(ed.heals){
-    cx.globalAlpha=.25;cx.strokeStyle='#00ff88';cx.lineWidth=2;
-    cx.beginPath();cx.arc(0,0,esz+12,0,Math.PI*2);cx.stroke();
-    cx.globalAlpha=1;
-  }
-  // Teleport shimmer
-  if(ed.teleports){
-    cx.globalAlpha=.3;cx.fillStyle='#ff44ff';
-    cx.beginPath();cx.arc(0,0,esz+8,0,Math.PI*2);cx.fill();cx.globalAlpha=1;
-  }
-  // HP bar
-  const bw=esz*3,bh=4,bx=-esz*1.5,by=-esz-12;
-  cx.shadowBlur=0;
-  cx.fillStyle='rgba(0,0,0,.7)';cx.fillRect(bx-1,by-1,bw+2,bh+2);
-  cx.fillStyle='#300';cx.fillRect(bx,by,bw,bh);
-  cx.fillStyle='#00ff88';cx.fillRect(bx,by,bw*.75,bh);
-  cx.restore();
+  frame();
   return cv;
 }
 
-function makeTowerCanvas(type,sz=70){
-  const cv=document.createElement('canvas');cv.width=sz;cv.height=sz;
+function makeAnimatedTowerPreview(type, sz=90){
+  const cv=document.createElement('canvas'); cv.width=sz; cv.height=sz;
   const cx=cv.getContext('2d');
-  const def=TDEFS[type];if(!def)return cv;
-  cx.save();cx.translate(sz/2,sz/2);
-  const s=sz*.38;
-  // Base
-  const rr=(x,y,w,h,r)=>{cx.beginPath();cx.moveTo(x+r,y);cx.lineTo(x+w-r,y);cx.arcTo(x+w,y,x+w,y+r,r);cx.lineTo(x+w,y+h-r);cx.arcTo(x+w,y+h,x+w-r,y+h,r);cx.lineTo(x+r,y+h);cx.arcTo(x,y+h,x,y+h-r,r);cx.lineTo(x,y+r);cx.arcTo(x,y,x+r,y,r);cx.closePath();};
-  rr(-s,-s,s*2,s*2,4);cx.fillStyle='#090b1c';cx.fill();
-  cx.strokeStyle=def.col;cx.lineWidth=2;cx.stroke();
-  // XP bar (show lv2)
-  cx.fillStyle='rgba(0,0,0,.5)';cx.fillRect(-s*.9,-s-5,s*1.8,3);
-  cx.fillStyle='#ffaa00';cx.fillRect(-s*.9,-s-5,s*1.2,3);
-  // Upgrade pips (show 2 pips)
-  for(let i=0;i<2;i++){cx.fillStyle=def.col;cx.beginPath();cx.arc(-4+i*8,s-5,2.5,0,Math.PI*2);cx.fill();}
-  // Combo badge
-  cx.font=`bold 9px Exo 2`;cx.fillStyle='#00ffaa';cx.textAlign='center';cx.fillText('×2',s*.3,-s*.2);
-  // Tower top
-  cx.rotate(-.3);cx.shadowColor=def.col;cx.shadowBlur=12;cx.fillStyle=def.col;
-  switch(type){
-    case 'cannon': cx.fillStyle='#555';cx.fillRect(-2,-3,14,6);cx.fillStyle=def.col;cx.beginPath();cx.arc(0,0,6,0,Math.PI*2);cx.fill();break;
-    case 'sniper': cx.fillStyle='#888';cx.fillRect(-2,-2,18,4);cx.fillStyle=def.col;cx.beginPath();cx.arc(0,0,4,0,Math.PI*2);cx.fill();break;
-    case 'frost':  for(let a=0;a<6;a++){cx.save();cx.rotate(a*Math.PI/3);cx.fillRect(-1,-7,2,14);cx.restore();}cx.beginPath();cx.arc(0,0,4,0,Math.PI*2);cx.fill();break;
-    case 'laser':  cx.fillStyle='#444';cx.fillRect(-2,-2,14,4);cx.fillStyle=def.col;cx.fillRect(11,-1.5,4,3);cx.beginPath();cx.arc(0,0,4,0,Math.PI*2);cx.fill();break;
-    case 'missile':cx.fillStyle='#888';cx.beginPath();cx.arc(0,0,7,0,Math.PI*2);cx.fill();cx.fillStyle=def.col;cx.fillRect(2,-2.5,11,5);break;
-    case 'tesla':  cx.fillRect(-1.5,-10,3,20);cx.beginPath();cx.arc(0,-10,3,0,Math.PI*2);cx.fill();cx.beginPath();cx.arc(0,10,3,0,Math.PI*2);cx.fill();break;
-    case 'inferno':cx.beginPath();cx.arc(0,0,7,0,Math.PI*2);cx.fill();cx.fillStyle='#ff8800';cx.beginPath();cx.arc(14,0,4,0,Math.PI*2);cx.fill();break;
-    case 'void':   cx.beginPath();cx.arc(0,0,8,0,Math.PI*2);cx.fillStyle='#000';cx.fill();cx.strokeStyle=def.col;cx.lineWidth=2;cx.stroke();cx.fillStyle=def.col;cx.beginPath();cx.arc(10,0,3,0,Math.PI*2);cx.fill();break;
+  const def=TDEFS[type]; if(!def) return cv;
+  const s=sz*.34; // base half-size
+
+  // Tower sits at left-centre, enemy walks across right half
+  const twx=sz*.28, twy=sz*.55;
+  const pathY=sz*.55;
+  const enemyStartX=sz*.5;
+  let ex=enemyStartX, ey=pathY;
+  const eSz=sz*.1;
+  const eSp=sz*.012;
+
+  // Projectiles/beams
+  let projs=[]; // {x,y,tx,ty,spd,col,sz,pierce,splR,lightning,chain}
+  let particles=[];
+  let fireCD=0;
+  const fireRate=def.rte>0?def.rte:0; // shots/sec equivalent (we run at ~60fps)
+  const fireInterval=fireRate>0?Math.max(4,Math.round(60/fireRate)):0;
+  let frameN=0;
+  let t=0;
+  // Warden: buffed tower alongside
+  // Chrono: slow field visible
+  let chainTargets=[]; // for tesla
+  let burnParticles=[]; // inferno
+
+  const rr=(ctx,x,y,w,h,r)=>{ctx.beginPath();ctx.moveTo(x+r,y);ctx.lineTo(x+w-r,y);ctx.arcTo(x+w,y,x+w,y+r,r);ctx.lineTo(x+w,y+h-r);ctx.arcTo(x+w,y+h,x+w-r,y+h,r);ctx.lineTo(x+r,y+h);ctx.arcTo(x,y+h,x,y+h-r,r);ctx.lineTo(x,y+r);ctx.arcTo(x,y,x+r,y,r);ctx.closePath();};
+
+  function drawTower(aimA){
+    cx.save(); cx.translate(twx,twy);
+    // Base
+    rr(cx,-s,-s,s*2,s*2,4); cx.fillStyle='#090b1c'; cx.fill();
+    cx.strokeStyle=def.col; cx.lineWidth=2; cx.stroke();
+    // XP pips
+    cx.fillStyle='rgba(0,0,0,.5)'; cx.fillRect(-s*.9,-s-4,s*1.8,2.5);
+    cx.fillStyle='#ffaa00'; cx.fillRect(-s*.9,-s-4,s*1.1,2.5);
+    for(let i=0;i<2;i++){cx.fillStyle=def.col;cx.beginPath();cx.arc(-3+i*7,s-4,2,0,Math.PI*2);cx.fill();}
+    // Barrel
+    cx.rotate(aimA); cx.shadowColor=def.col; cx.shadowBlur=10; cx.fillStyle=def.col;
+    switch(type){
+      case 'cannon':  cx.fillStyle='#555';cx.fillRect(-1.5,-2.5,13,5);cx.fillStyle=def.col;cx.beginPath();cx.arc(0,0,5.5,0,Math.PI*2);cx.fill();break;
+      case 'sniper':  cx.fillStyle='#888';cx.fillRect(-2,-1.5,17,3);cx.fillStyle=def.col;cx.beginPath();cx.arc(0,0,4,0,Math.PI*2);cx.fill();break;
+      case 'frost':   for(let a=0;a<6;a++){cx.save();cx.rotate(a*Math.PI/3);cx.fillRect(-1,-8,2,16);cx.restore();}cx.beginPath();cx.arc(0,0,4,0,Math.PI*2);cx.fill();break;
+      case 'laser':   cx.fillStyle='#444';cx.fillRect(-2,-2,13,4);cx.fillStyle=def.col;cx.fillRect(10,-1.5,4,3);cx.beginPath();cx.arc(0,0,4,0,Math.PI*2);cx.fill();break;
+      case 'missile': cx.fillStyle='#888';cx.beginPath();cx.arc(0,0,6,0,Math.PI*2);cx.fill();cx.fillStyle=def.col;cx.fillRect(2,-2,10,4);break;
+      case 'tesla':   cx.fillRect(-1.5,-9,3,18);cx.beginPath();cx.arc(0,-9,3,0,Math.PI*2);cx.fill();cx.beginPath();cx.arc(0,9,3,0,Math.PI*2);cx.fill();break;
+      case 'inferno': cx.beginPath();cx.arc(0,0,6,0,Math.PI*2);cx.fill();cx.fillStyle='#ff8800';cx.beginPath();cx.arc(13,0,3.5+Math.sin(t*5),0,Math.PI*2);cx.fill();break;
+      case 'void':    cx.beginPath();cx.arc(0,0,7,0,Math.PI*2);cx.fillStyle='#000';cx.fill();cx.strokeStyle=def.col;cx.lineWidth=2;cx.stroke();cx.fillStyle=def.col;cx.beginPath();cx.arc(Math.cos(t*.4)*9,Math.sin(t*.4)*9,2.5,0,Math.PI*2);cx.fill();cx.beginPath();cx.arc(Math.cos(t*.4+Math.PI)*9,Math.sin(t*.4+Math.PI)*9,2,0,Math.PI*2);cx.fill();break;
+      case 'phantom': cx.globalAlpha=.5+Math.sin(t)*.25;cx.fillStyle=def.col;cx.beginPath();cx.arc(0,0,7,0,Math.PI*2);cx.fill();cx.globalAlpha=1;cx.fillStyle='#fff';cx.fillRect(-1,-10,2,20);cx.fillRect(-10,-1,20,2);cx.fillStyle=def.col;cx.beginPath();cx.arc(0,0,3.5,0,Math.PI*2);cx.fill();break;
+      case 'omega':   for(let a=0;a<4;a++){cx.save();cx.rotate(t*.3+a*Math.PI/2);cx.fillRect(4,-1.5,9,3);cx.restore();}cx.fillStyle='#000';cx.beginPath();cx.arc(0,0,6,0,Math.PI*2);cx.fill();cx.strokeStyle=def.col;cx.lineWidth=2;cx.stroke();cx.fillStyle='#ff8800';cx.beginPath();cx.arc(0,0,3,0,Math.PI*2);cx.fill();break;
+      case 'warden':  cx.fillStyle=def.col;cx.beginPath();for(let a=0;a<6;a++){const ang=a*Math.PI/3;cx.lineTo(Math.cos(ang)*7,Math.sin(ang)*7);}cx.closePath();cx.fill();cx.fillStyle='#000';cx.beginPath();cx.arc(0,0,3.5,0,Math.PI*2);cx.fill();break;
+      case 'chrono':  cx.strokeStyle=def.col;cx.lineWidth=2;cx.beginPath();cx.arc(0,0,9,0,Math.PI*2);cx.stroke();cx.fillStyle=def.col;cx.beginPath();cx.moveTo(0,0);cx.lineTo(Math.cos(t)*7,Math.sin(t)*7);cx.lineTo(Math.cos(t)*.5,Math.sin(t)*.5);cx.closePath();cx.fill();cx.beginPath();cx.moveTo(0,0);cx.lineTo(Math.cos(-t*.4)*5,Math.sin(-t*.4)*5);cx.stroke();cx.fillStyle=def.col;cx.beginPath();cx.arc(0,0,2,0,Math.PI*2);cx.fill();break;
+    }
+    cx.shadowBlur=0; cx.restore();
   }
-  cx.restore();
+
+  function drawEnemy(x,y,slowed){
+    cx.save(); cx.translate(x,y);
+    if(slowed){cx.globalAlpha=.45;cx.fillStyle='#88ddff';cx.beginPath();cx.arc(0,0,eSz+4,0,Math.PI*2);cx.fill();cx.globalAlpha=1;}
+    cx.fillStyle='#4ccfff'; cx.strokeStyle='rgba(255,255,255,.3)'; cx.lineWidth=1; cx.shadowColor='#4ccfff'; cx.shadowBlur=6;
+    cx.beginPath(); cx.arc(0,0,eSz,0,Math.PI*2); cx.fill(); cx.stroke();
+    cx.shadowBlur=0; cx.restore();
+  }
+
+  function lightning(ax,ay,bx,by,col){
+    cx.save(); cx.strokeStyle=col; cx.lineWidth=1.5; cx.shadowColor=col; cx.shadowBlur=10;
+    cx.beginPath(); cx.moveTo(ax,ay);
+    const steps=6; const dx=(bx-ax)/steps,dy=(by-ay)/steps;
+    for(let i=1;i<=steps;i++) cx.lineTo(ax+dx*i+(Math.random()-.5)*8, ay+dy*i+(Math.random()-.5)*8);
+    cx.stroke(); cx.restore();
+  }
+
+  let aimA=0;
+  let wardenPulse=0;
+  let chronoSlow=false;
+
+  function frame(){
+    t+=0.025; frameN++;
+    cx.clearRect(0,0,sz,sz);
+
+    // BG
+    cx.fillStyle='rgba(8,12,24,.9)'; cx.fillRect(0,0,sz,sz);
+    // Path
+    cx.strokeStyle='rgba(255,255,255,.06)'; cx.lineWidth=eSz*2+4; cx.lineCap='round';
+    cx.beginPath(); cx.moveTo(sz*.05,pathY); cx.lineTo(sz*.97,pathY); cx.stroke();
+
+    // ── ENEMY MOVEMENT ──
+    const slowed=(type==='frost'||type==='chrono');
+    const spd=slowed?eSp*.25:eSp;
+    ex+=spd;
+    if(ex>sz*.97) ex=sz*.5;
+
+    // Aim angle tower→enemy
+    aimA=Math.atan2(ey-twy, ex-twx);
+
+    // ── PASSIVE EFFECTS ──
+    // Warden: buff ring + nearby tower sketch
+    if(type==='warden'){
+      wardenPulse+=0.04;
+      // Show a second tower to the right being buffed
+      const btx=twx+sz*.38, bty=twy;
+      cx.save(); cx.translate(btx,bty);
+      rr(cx,-s*.7,-s*.7,s*1.4,s*1.4,3); cx.fillStyle='#090b1c'; cx.fill();
+      // Warden buff glow on it
+      cx.globalAlpha=.3+Math.sin(wardenPulse*2)*.15; cx.strokeStyle=def.col; cx.lineWidth=2;
+      cx.beginPath(); cx.arc(0,0,s*.9,0,Math.PI*2); cx.stroke(); cx.globalAlpha=1;
+      cx.strokeStyle='#aabb44'; cx.lineWidth=1.5; cx.stroke(); cx.restore();
+      // Aura ring from warden
+      const rng=sz*.55;
+      cx.save(); cx.strokeStyle=def.col; cx.lineWidth=1.5;
+      cx.globalAlpha=.15+Math.sin(wardenPulse)*.08;
+      cx.beginPath(); cx.arc(twx,twy,rng,0,Math.PI*2); cx.stroke(); cx.globalAlpha=1; cx.restore();
+      // Buff particles drifting toward buffed tower
+      if(frameN%15===0) particles.push({x:twx+(Math.random()-.5)*10,y:twy+(Math.random()-.5)*10,vx:(btx-twx)*.03,vy:(Math.random()-.5)*.5,col:def.col,life:1,sz:2});
+    }
+
+    // Chrono: time-slow field
+    if(type==='chrono'){
+      const rng=sz*.5;
+      // Expanding pulse rings
+      const phase=(t*.25)%1;
+      cx.save();
+      for(let r=0;r<3;r++){
+        const p=(phase+r*.33)%1;
+        cx.globalAlpha=(1-p)*.2; cx.strokeStyle=def.col; cx.lineWidth=1.5;
+        cx.beginPath(); cx.arc(twx,twy,rng*p,0,Math.PI*2); cx.stroke();
+      }
+      cx.globalAlpha=.05; cx.fillStyle=def.col;
+      cx.beginPath(); cx.arc(twx,twy,rng,0,Math.PI*2); cx.fill(); cx.globalAlpha=1; cx.restore();
+      // "SLOWED" label on enemy
+      cx.font='bold 7px Exo 2'; cx.fillStyle='#88ddff'; cx.textAlign='center';
+      cx.fillText('SLOWED',ex,ey-eSz-10);
+    }
+
+    // ── FIRE LOGIC ──
+    if(fireInterval>0 && frameN%fireInterval===0){
+      if(type==='laser'){
+        // Laser: instant beam line
+        cx.save(); cx.strokeStyle=def.col; cx.lineWidth=2.5; cx.shadowColor=def.col; cx.shadowBlur=12;
+        cx.globalAlpha=.9+Math.random()*.1;
+        cx.beginPath(); cx.moveTo(twx,twy); cx.lineTo(ex,ey); cx.stroke();
+        cx.globalAlpha=1; cx.restore();
+        particles.push({x:ex,y:ey,vx:(Math.random()-.5)*2,vy:(Math.random()-.5)*2-1,col:def.col,life:.6,sz:3});
+      } else if(type==='tesla'){
+        // Tesla: lightning bolt
+        lightning(twx,twy,ex,ey,'#bf5fff');
+        // Chain to a second phantom target nearby
+        lightning(ex,ey,ex+sz*.18,ey-sz*.08,'#bf5fff');
+        for(let i=0;i<4;i++) particles.push({x:ex,y:ey,vx:(Math.random()-.5)*3,vy:(Math.random()-.5)*3,col:'#bf5fff',life:.5,sz:2});
+      } else if(type==='phantom'){
+        // Pierce beam: full line through enemy
+        cx.save(); cx.globalAlpha=.85;
+        const g=cx.createLinearGradient(twx,twy,sz*.97,twy);
+        g.addColorStop(0,def.col+'ff'); g.addColorStop(.5,def.col+'aa'); g.addColorStop(1,'transparent');
+        cx.strokeStyle=g; cx.lineWidth=3; cx.shadowColor=def.col; cx.shadowBlur=14;
+        cx.beginPath(); cx.moveTo(twx,twy); cx.lineTo(sz*.97,ey); cx.stroke();
+        cx.globalAlpha=1; cx.restore();
+        // Sparkles along line
+        for(let i=0;i<5;i++) particles.push({x:twx+(sz*.69)*i/4,y:ey+(Math.random()-.5)*4,vx:0,vy:(Math.random()-.5)*.8,col:def.col,life:.4,sz:2.5});
+      } else {
+        // Projectile
+        const splR=def.splR>0?def.splR*sz*.06:0;
+        projs.push({x:twx,y:twy,tx:ex,ty:ey,spd:sz*.035,col:def.col,sz:type==='missile'?5:type==='void'||type==='omega'?7:3.5,splR,ttype:type});
+      }
+    }
+
+    // ── UPDATE PROJECTILES ──
+    for(let i=projs.length-1;i>=0;i--){
+      const p=projs[i];
+      const dx=p.tx-p.x, dy=p.ty-p.y, d=Math.hypot(dx,dy);
+      const mv=p.spd;
+      if(d<=mv+2){
+        // Impact
+        if(p.splR>4){
+          // Splash ring
+          particles.push({x:p.tx,y:p.ty,splR:p.splR,splLife:1,col:p.col,splash:true,life:1});
+          for(let k=0;k<10;k++){const a=Math.random()*Math.PI*2,s=p.splR*.5+Math.random()*p.splR*.5;particles.push({x:p.tx,y:p.ty,vx:Math.cos(a)*s*.04,vy:Math.sin(a)*s*.04-1,col:p.col,life:.7,sz:2.5+Math.random()*2});}
+        } else {
+          for(let k=0;k<5;k++) particles.push({x:p.tx,y:p.ty,vx:(Math.random()-.5)*2,vy:(Math.random()-.5)*2-1,col:p.col,life:.5,sz:2});
+        }
+        // Inferno: burn
+        if(p.ttype==='inferno') for(let k=0;k<6;k++) particles.push({x:p.tx+(Math.random()-.5)*8,y:p.ty,vx:(Math.random()-.5)*.5,vy:-Math.random()*.8,col:'#ff8800',life:.8+Math.random()*.4,sz:2.5});
+        projs.splice(i,1); continue;
+      }
+      p.x+=dx/d*mv; p.y+=dy/d*mv;
+      // Draw projectile
+      cx.save(); cx.fillStyle=p.col; cx.shadowColor=p.col; cx.shadowBlur=8;
+      if(p.ttype==='missile'){
+        cx.save(); cx.translate(p.x,p.y); cx.rotate(Math.atan2(dy,dx));
+        cx.fillStyle='#888'; cx.fillRect(-6,-2.5,10,5);
+        cx.fillStyle='#ff8800'; cx.beginPath(); cx.arc(-6,0,4,0,Math.PI*2); cx.fill();
+        cx.restore();
+      } else {
+        cx.beginPath(); cx.arc(p.x,p.y,p.sz,0,Math.PI*2); cx.fill();
+      }
+      cx.shadowBlur=0; cx.restore();
+    }
+
+    // ── PARTICLES ──
+    for(let i=particles.length-1;i>=0;i--){
+      const p=particles[i];
+      if(p.splash){
+        p.splLife-=0.04; if(p.splLife<=0){particles.splice(i,1);continue;}
+        cx.save(); cx.globalAlpha=p.splLife*.6; cx.strokeStyle=p.col; cx.lineWidth=2; cx.shadowColor=p.col; cx.shadowBlur=8;
+        cx.beginPath(); cx.arc(p.x,p.y,p.splR*(1-p.splLife*.5),0,Math.PI*2); cx.stroke();
+        cx.globalAlpha=1; cx.restore(); continue;
+      }
+      p.x+=p.vx; p.y+=p.vy; p.vy+=0.08; p.life-=0.04;
+      if(p.life<=0){particles.splice(i,1);continue;}
+      cx.save(); cx.globalAlpha=Math.max(0,p.life); cx.fillStyle=p.col; cx.shadowColor=p.col; cx.shadowBlur=4;
+      cx.beginPath(); cx.arc(p.x,p.y,p.sz,0,Math.PI*2); cx.fill();
+      cx.globalAlpha=1; cx.shadowBlur=0; cx.restore();
+    }
+
+    // ── DRAW TOWER ──
+    drawTower(aimA);
+
+    // ── DRAW ENEMY (on top) ──
+    drawEnemy(ex,ey,slowed);
+
+    // Laser persistent beam (on top of tower draw)
+    if(type==='laser'&&frameN%fireInterval>=0&&frameN%fireInterval<3){
+      cx.save(); cx.strokeStyle=def.col; cx.lineWidth=2; cx.shadowColor=def.col; cx.shadowBlur=16; cx.globalAlpha=.5;
+      cx.beginPath(); cx.moveTo(twx,twy); cx.lineTo(ex,ey); cx.stroke(); cx.restore();
+    }
+
+    guideAnims.push({raf:requestAnimationFrame(frame)});
+  }
+  frame();
   return cv;
 }
+
 
 // ── Enemy entry data for guide ──
 const GUIDE_ENEMIES=[
@@ -936,20 +1298,25 @@ const GUIDE_ENEMIES=[
 ];
 
 const GUIDE_TOWERS=[
-  {type:'cannon',  role:'AoE',     lore:'Reliable splash damage from the first level. Backbone of early defences. Upgrades into siege artillery.'},
-  {type:'sniper',  role:'Sniper',  lore:'Extreme range, armour-piercing rounds. Ignores armour entirely — essential against Armoured and IronSplit.'},
-  {type:'frost',   role:'Control', lore:'Slows enemies up to 90% at max upgrade. Pairs with Tesla for +30% chain damage synergy.'},
-  {type:'laser',   role:'Rapid',   lore:'5 shots per second with growing DPS upgrades. Excellent against high-HP clusters. Unlocks at level 3.'},
-  {type:'missile', role:'Burst',   lore:'High-yield explosions with massive splash radius. The ICBM upgrade devastates entire waves.'},
-  {type:'tesla',   role:'Chain',   lore:'Lightning chains between multiple enemies. Pairs with Frost for synergy bonus. Unlocks at level 7.'},
-  {type:'inferno', role:'DoT',     lore:'Sets enemies ablaze for persistent burn damage. Dragon Wrath upgrade runs at 5 shots/sec.'},
-  {type:'void',    role:'Singularity', lore:'The ultimate weapon. Massive AoE, extreme damage. Requires 13 levels unlocked and 350 gold.'},
+  {type:'cannon',  role:'AoE',       lore:'Reliable splash damage from the first level. Backbone of early defences. Upgrades into siege artillery.'},
+  {type:'sniper',  role:'Sniper',    lore:'Extreme range, armour-piercing rounds. Ignores armour entirely — essential against Armoured and IronSplit.'},
+  {type:'frost',   role:'Control',   lore:'Slows enemies up to 90% at max upgrade. Pairs with Tesla for +30% chain damage synergy.'},
+  {type:'laser',   role:'Rapid',     lore:'5 shots per second with growing DPS upgrades. Excellent against high-HP clusters. Unlocks at level 3.'},
+  {type:'missile', role:'Burst',     lore:'High-yield explosions with massive splash radius. The ICBM upgrade devastates entire waves.'},
+  {type:'tesla',   role:'Chain',     lore:'Lightning chains between multiple enemies. Pairs with Frost for synergy bonus. Unlocks at level 7.'},
+  {type:'inferno', role:'DoT',       lore:'Sets enemies ablaze for persistent burn damage. Dragon Wrath upgrade runs at 5 shots/sec.'},
+  {type:'void',    role:'Singularity',lore:'The ultimate weapon. Massive AoE, extreme damage. Requires 13 levels unlocked and 280 gold.'},
+  {type:'phantom', role:'Pierce',    lore:'Token exclusive. Fires an instant beam piercing every enemy in a straight line simultaneously. Ignores armour.'},
+  {type:'omega',   role:'Nuclear',   lore:'Token exclusive. Massive nuclear blast ignoring all armour. The most powerful tower in the arsenal.'},
+  {type:'warden',  role:'Support',   lore:'Token exclusive. Passive aura boosts all nearby towers by +25% damage and range. Does not attack.'},
+  {type:'chrono',  role:'Time',      lore:'Token exclusive. Slows all enemies in range by 75%. Counters boss rage completely. Does not attack.'},
 ];
 
 const THREAT_COLS=['','#00ff88','#ffd700','#ff8800','#ff3d5a','#ff00ff'];
 const THREAT_LABELS=['','LOW','MODERATE','HIGH','SEVERE','EXTREME'];
 
 function buildGuideEnemies(page){
+  stopGuideAnims();
   page.innerHTML=`<div class="gpage-title">ENEMY CODEX</div>
   <div class="gpage-sub">THREAT ASSESSMENT & TACTICAL NOTES</div>
   <div class="lore-block"><b>Commander's Note:</b> Study each enemy class carefully. Many units carry secondary abilities that can reverse a well-placed defence. Priority targets are marked with higher threat ratings.</div>
@@ -959,7 +1326,7 @@ function buildGuideEnemies(page){
     const ed=EDEFS[e.type];if(!ed)return;
     const card=document.createElement('div');card.className='g-card';
     const wrap=document.createElement('div');wrap.className='g-card-canvas-wrap';
-    const cv=makeEnemyCanvas(e.type,90);wrap.appendChild(cv);
+    const cv=makeAnimatedEnemyPreview(e.type,90);wrap.appendChild(cv);
     const traits=[];
     if(ed.armor) traits.push({t:'ARMOURED',c:'#aabbff'});
     if(ed.heals) traits.push({t:'HEALER',c:'#00ff88'});
@@ -970,7 +1337,7 @@ function buildGuideEnemies(page){
     if(ed.summon) traits.push({t:`SUMMONS ${ed.summon.toUpperCase()}`,c:'#ff3d5a'});
     if(ed.mega) traits.push({t:'MEGA',c:'#ff00ff'});
     if(e.type==='boss'||e.type==='megaboss'||e.type==='teleboss') traits.push({t:'RAGES <25%',c:'#ff0000'});
-    const traitHTML=traits.map(t=>`<span class="g-card-trait" style="color:${t.c};border-color:${t.c}44;background:${t.c}11">${t.t}</span>`).join('');
+    const traitHTML=traits.map(tr=>`<span class="g-card-trait" style="color:${tr.c};border-color:${tr.c}44;background:${tr.c}11">${tr.t}</span>`).join('');
     const body=document.createElement('div');body.className='g-card-body';
     const tcol=THREAT_COLS[e.threat]||'#888';
     body.innerHTML=`<div class="g-card-name">${ed.name}</div>
@@ -988,26 +1355,32 @@ function buildGuideEnemies(page){
 }
 
 function buildGuideTowers(page){
+  stopGuideAnims();
   page.innerHTML=`<div class="gpage-title">TOWER ARSENAL</div>
   <div class="gpage-sub">SPECIFICATIONS & DEPLOYMENT NOTES</div>
-  <div class="lore-block"><b>Commander's Note:</b> Each tower gains XP from kills in range, boosting damage by up to 60%. Adjacent same-type towers form Combos for bonus multipliers. Frost+Tesla adjacency triggers Synergy.</div>
+  <div class="lore-block"><b>Commander's Note:</b> Each tower gains XP from kills in range, boosting damage by up to 60%. Adjacent same-type towers form Combos for bonus multipliers. Frost+Tesla adjacency triggers Synergy. Token-exclusive towers require the Token Shop.</div>
   <div class="g-cards" id="tower-cards"></div>`;
   const grid=page.querySelector('#tower-cards');
   GUIDE_TOWERS.forEach(t=>{
-    const def=TDEFS[t.type];const ups=TUPG[t.type];if(!def)return;
-    const card=document.createElement('div');card.className='g-card';
+    const def=TDEFS[t.type];const ups=TUPG[t.type];if(!def||!ups)return;
+    const card=document.createElement('div');card.className='g-card'+(def.tokenOnly?' g-card-premium':'');
     const wrap=document.createElement('div');wrap.className='g-card-canvas-wrap';
-    const cv=makeTowerCanvas(t.type,90);wrap.appendChild(cv);
+    const cv=makeAnimatedTowerPreview(t.type,90);wrap.appendChild(cv);
     const maxUp=ups[ups.length-1];
     const body=document.createElement('div');body.className='g-card-body';
+    const unlockStr=def.tokenOnly
+      ? `<span style="color:#ff6600">TOKEN EXCLUSIVE · ${def.tokenCost}🪙</span>`
+      : `UNLOCKS LV${def.ul}`;
     body.innerHTML=`<div class="g-card-name">${def.icon} ${def.name}</div>
-      <div class="g-card-type" style="color:${def.col}">${t.role} &nbsp;·&nbsp; UNLOCKS LV${def.ul}</div>
+      <div class="g-card-type" style="color:${def.col}">${t.role} &nbsp;·&nbsp; ${unlockStr}</div>
       <div class="g-card-stats">
         <b>COST</b> ${def.cost}💰 &nbsp;<b>UPGRADES</b> ${ups.length}<br>
-        <b>DMG</b> ${def.dmg}→${maxUp.dmg||'—'} &nbsp;<b>RNG</b> ${def.rng}→${maxUp.rng||def.rng}<br>
-        <b>RATE</b> ${def.rte}/s &nbsp;<b>MAX NAME</b> <span style="color:${def.col}">${maxUp.n}</span>
+        ${def.dmg>0?`<b>DMG</b> ${def.dmg}→${maxUp.dmg||'—'} &nbsp;`:'<b>PASSIVE</b> &nbsp;'}<b>RNG</b> ${def.rng}→${maxUp.rng||def.rng}<br>
+        ${def.rte>0?`<b>RATE</b> ${def.rte}/s &nbsp;`:''}
+        <b>MAX</b> <span style="color:${def.col}">${maxUp.n}</span>
         ${def.slw?`<br><b>SLOW</b> ${Math.round(def.slw*100)}% base`:''}
         ${def.splR?`<br><b>SPLASH</b> ${def.splR} tile radius`:''}
+        ${def.special?`<br><span style="color:${def.col};font-size:9px">${def.special}</span>`:''}
       </div>
       <div style="font-size:9px;color:#2a3a50;margin-top:7px;line-height:1.55;font-style:italic">${t.lore}</div>`;
     card.appendChild(wrap);card.appendChild(body);
@@ -1180,6 +1553,7 @@ function showScreen(id){
   document.getElementById('shop-modal').classList.remove('show');
   document.getElementById('quests-modal').classList.remove('show');
   document.getElementById('guide-modal').classList.remove('show');
+  document.getElementById('cheat-modal').classList.remove('show');
   ttClose();
   document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
   document.getElementById(id).classList.add('active');
@@ -1276,8 +1650,47 @@ function buildPath(seed){
 }
 
 // ══════════════════════════════════════
-//  SYNERGY
+//  ADAPTIVE PATH (Endless mode)
 // ══════════════════════════════════════
+// Each wave, up to 3 path segments shift by ±1 row, avoiding placed towers
+function adaptPath(){
+  if(!endlessMode||PATH.length<6)return;
+  const newPath=[...PATH];
+  const shiftCount=Math.min(3,1+Math.floor(endlessWave/10));
+  for(let s=0;s<shiftCount;s++){
+    // Pick a random interior segment (avoid start and end 20%)
+    const lo=Math.floor(newPath.length*.15), hi=Math.floor(newPath.length*.85);
+    const segStart=lo+Math.floor(Math.random()*(hi-lo-4));
+    const segLen=3+Math.floor(Math.random()*4);
+    const dir=Math.random()<.5?1:-1;
+    // Check if shift is valid (stays in bounds, no towers)
+    let valid=true;
+    for(let i=segStart;i<Math.min(segStart+segLen,newPath.length-1);i++){
+      const [rr,cc]=newPath[i];
+      const nr=rr+dir;
+      if(nr<1||nr>ROWS-2){valid=false;break;}
+      if(GRID[nr]&&GRID[nr][cc]===2){valid=false;break;} // tower in the way
+    }
+    if(!valid)continue;
+    // Apply shift
+    for(let i=segStart;i<Math.min(segStart+segLen,newPath.length-1);i++){
+      newPath[i]=[newPath[i][0]+dir, newPath[i][1]];
+    }
+    // Smooth the transition at edges (interpolate 1 cell before/after)
+    if(segStart>0){
+      const [pr,pc]=newPath[segStart-1],[cr,cc]=newPath[segStart];
+      if(Math.abs(pr-cr)>1)newPath[segStart]=[pr+Math.sign(cr-pr),cc];
+    }
+  }
+  // Rebuild GRID path markers
+  PATH.forEach(([rr,cc])=>{if(GRID[rr]&&GRID[rr][cc]===1)GRID[rr][cc]=0;PGRID.delete(rr+','+cc);});
+  PATH=newPath;
+  PATH.forEach(([rr,cc])=>{if(GRID[rr]){GRID[rr][cc]=1;PGRID.add(rr+','+cc);}});
+  // Reset enemy pathIdx — enemies on old path nodes snap to nearest valid index
+  for(const en of enemies){en.pathIdx=Math.min(en.pathIdx,PATH.length-1);}
+  notify('⚠ Path shifted!','#ff8800');
+  floats.push({x:CW/2,y:CH/2-30,txt:'PATH ADAPTED',col:'#ff8800',life:2,sz:16});
+}
 function getSynergy(tw){
   const partner=tw.ttype==='frost'?'tesla':tw.ttype==='tesla'?'frost':null;
   if(!partner)return null;
@@ -1358,9 +1771,11 @@ function updateTTContent(){
   const synEl=document.getElementById('tt-syn');
   synEl.style.display=syn?'block':'none';if(syn)synEl.textContent=`⚡ Synergy +30% dmg`;
   const xpLv=ttTower.xpLv||0;const comboM=towerComboMult(ttTower);
+  const fatM=towerFatigueMult(ttTower);
   const xpBonus=xpLv>0?` <span style="color:#ffe066">★${xpLv} +${Math.round(XP_BONUSES[xpLv]*100)}%xp</span>`:'';
   const comboBonus=comboM>1?` <span style="color:#00ffaa">${comboM>=1.35?'×3':' ×2'} combo</span>`:'';
-  document.getElementById('tt-stats').innerHTML=`<b>DMG</b> ${(ttTower.dmg*SBONUSES.dmgMult()*synergyMult(ttTower)*towerXPMult(ttTower)*towerComboMult(ttTower)).toFixed(0)} &nbsp;<b>RNG</b> ${(ttTower.rng*SBONUSES.rngMult()).toFixed(1)} &nbsp;<b>RTE</b> ${(ttTower.rte*SBONUSES.rteMult()).toFixed(1)}/s`+(ttTower.slw?`<br><b>SLOW</b> ${Math.round(ttTower.slw*100)}%`:'')+`<br><b>Kills</b> ${ttTower.kills||0}${xpBonus}${comboBonus}<br><b>Sell:</b> <span style="color:#ffd700">+${sellVal(ttTower)}💰</span>`;
+  const fatigueWarn=fatM<1?` <span style="color:#ff3300">🔥 ${Math.round(fatM*100)}% worn</span>`:'';
+  document.getElementById('tt-stats').innerHTML=`<b>DMG</b> ${(ttTower.dmg*SBONUSES.dmgMult()*synergyMult(ttTower)*towerXPMult(ttTower)*towerComboMult(ttTower)*fatM).toFixed(0)} &nbsp;<b>RNG</b> ${(ttTower.rng*SBONUSES.rngMult()).toFixed(1)} &nbsp;<b>RTE</b> ${(ttTower.rte*SBONUSES.rteMult()).toFixed(1)}/s`+(ttTower.slw?`<br><b>SLOW</b> ${Math.round(ttTower.slw*100)}%`:'')+`<br><b>Kills</b> ${ttTower.kills||0} <b>Shots</b> ${ttTower.shots||0}${xpBonus}${comboBonus}${fatigueWarn}<br><b>Sell:</b> <span style="color:#ffd700">+${sellVal(ttTower)}💰</span>`;
   document.getElementById('tt-upbox').style.display=maxed?'none':'block';
   document.getElementById('tt-max').style.display=maxed?'block':'none';
   const upbtn=document.getElementById('tt-upbtn');upbtn.style.display=maxed?'none':'block';
@@ -1557,11 +1972,20 @@ function isWardenBuffed(tw){
   return towers.some(w=>w.ttype==='warden'&&Math.hypot(tw.x-w.x,tw.y-w.y)<=w.rng*CELL*SBONUSES.rngMult());
 }
 
+function towerFatigueMult(tw){
+  const shots=tw.shots||0;
+  if(shots<500)return 1;
+  // -1% per 100 shots over 500, min 60%
+  return Math.max(0.6, 1 - Math.floor((shots-500)/100)*0.01);
+}
+
 function spawnProj(tw,tgt){
+  tw.shots=(tw.shots||0)+1;
   const xpM=towerXPMult(tw);
   const comboM=towerComboMult(tw);
   const wardM=wardenMult(tw);
-  projs.push({x:tw.x,y:tw.y,tgt,dmg:tw.dmg*SBONUSES.dmgMult()*synergyMult(tw)*xpM*comboM*wardM,splR:(tw.splR||0)*CELL,slw:tw.slw||0,
+  const fatM=towerFatigueMult(tw);
+  projs.push({x:tw.x,y:tw.y,tgt,dmg:tw.dmg*SBONUSES.dmgMult()*synergyMult(tw)*xpM*comboM*wardM*fatM,splR:(tw.splR||0)*CELL,slw:tw.slw||0,
     col:tw.col,spd:270+Math.random()*40,dead:false,
     pierce:tw.ttype==='sniper'||tw.ttype==='missile'||tw.ttype==='omega',
     burn:tw.ttype==='inferno',ttype:tw.ttype,
@@ -1569,11 +1993,12 @@ function spawnProj(tw,tgt){
 }
 
 function firePierce(tw,tgt){
-  // Phantom: instant pierce beam hitting all enemies on the line to target
+  tw.shots=(tw.shots||0)+1;
   const xpM=towerXPMult(tw);
   const comboM=towerComboMult(tw);
   const wardM=wardenMult(tw);
-  const dmg=tw.dmg*SBONUSES.dmgMult()*synergyMult(tw)*xpM*comboM*wardM;
+  const fatM=towerFatigueMult(tw);
+  const dmg=tw.dmg*SBONUSES.dmgMult()*synergyMult(tw)*xpM*comboM*wardM*fatM;
   const rng=tw.rng*CELL*SBONUSES.rngMult();
   const ax=tw.x,ay=tw.y,bx=tgt.x,by=tgt.y;
   const len=Math.hypot(bx-ax,by-ay);
@@ -1792,7 +2217,14 @@ function drawTowerBase(tw){
   if(combo>1){strokeCol='#00ffaa';strokeW=2;}
   if(tw.upgradeLevel>=3){strokeCol='#ffd700';strokeW=2.5;}
   if(xpLv>=4){strokeCol='#ffffff';strokeW=3;}
+  const fatigue=towerFatigueMult(tw);
+  if(fatigue<1){strokeCol='#ff3300';strokeW=2;} // fatigued — red override
   CX.strokeStyle=strokeCol;CX.lineWidth=strokeW;CX.stroke();
+  // Fatigue heat shimmer on heavily degraded towers
+  if(fatigue<=0.75){
+    CX.globalAlpha=(1-fatigue)*.35;CX.fillStyle='#ff2200';
+    CX.beginPath();CX.arc(0,0,s*.6,0,Math.PI*2);CX.fill();CX.globalAlpha=1;
+  }
   // Upgrade pips
   for(let i=0;i<tw.upgradeLevel;i++){CX.fillStyle=tw.upgradeLevel>=3?'#ffd700':tw.col;CX.beginPath();CX.arc(-5+i*5,s-5,2.5,0,Math.PI*2);CX.fill();}
   // XP bar across top of tower
@@ -1910,8 +2342,9 @@ function levelWin(){
         const savedGold=gold, savedLives=lives, savedTowers=[...towers];
         startLv(30);
         requestAnimationFrame(()=>{gold=savedGold;lives=savedLives;towers=savedTowers;
-          // Re-register towers on grid
           for(const tw of towers){if(GRID[tw.r])GRID[tw.r][tw.c]=2;}
+          // Adapt path every 3 waves
+          if(endlessWave>1&&endlessWave%3===1)setTimeout(adaptPath,400);
           buildSidebar();updateHUD();
         });
       }},{t:'↺ RESTART',fn:()=>{endlessWave=1;startEndless();}},{t:'◀ MAP',fn:()=>{endlessMode=false;goMap();}}]);
@@ -2015,8 +2448,28 @@ function notify(txt,col='#00d4ff'){
 }
 
 // ══════════════════════════════════════
-//  INIT
+//  CHEAT CODE
 // ══════════════════════════════════════
+let _cheatBuf='';
+document.addEventListener('keydown',e=>{
+  // Only active on map screen
+  if(!document.getElementById('s-map').classList.contains('active'))return;
+  _cheatBuf=(_cheatBuf+e.key).slice(-8);
+  if(_cheatBuf==='hacker67'){_cheatBuf='';openCheat();}
+});
+function openCheat(){
+  document.getElementById('cheat-amount').value=100;
+  document.getElementById('cheat-modal').classList.add('show');
+  setTimeout(()=>document.getElementById('cheat-amount').focus(),50);
+}
+function closeCheat(){document.getElementById('cheat-modal').classList.remove('show');}
+function confirmCheat(){
+  const amt=Math.max(1,Math.min(9999,parseInt(document.getElementById('cheat-amount').value)||0));
+  save.tokens=(save.tokens||0)+amt;
+  writeSave();buildMap();closeCheat();
+  notify(`💻 +${amt}🪙 injected`,'#33ff00');
+}
+document.getElementById('cheat-amount').addEventListener('keydown',e=>{if(e.key==='Enter')confirmCheat();if(e.key==='Escape')closeCheat();});
 checkQuestReset();
 buildMap();
 </script>
