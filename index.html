@@ -324,6 +324,8 @@ html,body{width:100%;height:100%;overflow:hidden;background:#06070f;font-family:
       <div class="mstat">Best: <b id="ms-hi">0</b></div>
       <div class="mstat">Stars: <b id="ms-st">0</b>/90</div>
       <div class="mstat tok">🪙 <b id="ms-tok">0</b> tokens</div>
+      <div class="mstat" id="ms-prestige-wrap" style="display:none">🌟 <b id="ms-prestige">0</b> Prestige</div>
+      <div class="mstat" id="ms-endless-wrap" style="display:none">∞ Best: <b id="ms-endless">0</b></div>
     </div>
     <div class="map-btns">
       <button class="map-btn btn-shop" onclick="openShop()">🪙 TOKEN SHOP</button>
@@ -456,6 +458,33 @@ html,body{width:100%;height:100%;overflow:hidden;background:#06070f;font-family:
 
 <div id="notifs"></div>
 <div id="overlay"><div id="ov-h"></div><div id="ov-p"></div><div class="ovbtns" id="ov-btns"></div></div>
+
+<!-- Tower Stats Modal -->
+<div id="stats-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.82);z-index:900;overflow-y:auto;padding:16px;box-sizing:border-box;">
+  <div style="max-width:520px;margin:0 auto;background:#0d1022;border:2px solid #2a3060;border-radius:12px;padding:20px;">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;">
+      <h2 style="margin:0;color:#e8eaf6;font-size:1.15rem;letter-spacing:.08em;">📊 TOWER PERFORMANCE</h2>
+      <button onclick="closeStats()" style="background:#1a1f3a;border:1px solid #2a3060;color:#aaa;padding:4px 10px;border-radius:6px;cursor:pointer;font-size:.85rem;">✕ CLOSE</button>
+    </div>
+    <div id="stats-summary" style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:16px;"></div>
+    <div id="stats-list" style="display:flex;flex-direction:column;gap:8px;"></div>
+    <div class="ovbtns" id="stats-btns" style="margin-top:16px;"></div>
+  </div>
+</div>
+
+<!-- Prestige Modal -->
+<div id="prestige-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.88);z-index:950;display:none;align-items:center;justify-content:center;">
+  <div style="max-width:400px;width:90%;background:#0d1022;border:2px solid #ffd700;border-radius:14px;padding:24px;text-align:center;">
+    <div style="font-size:2.5rem;margin-bottom:8px;">🌟</div>
+    <h2 style="color:#ffd700;margin:0 0 8px;font-size:1.3rem;letter-spacing:.1em;">PRESTIGE AVAILABLE</h2>
+    <p style="color:#aab;font-size:.9rem;line-height:1.5;margin:0 0 16px;">You've survived <b style="color:#ff6600">50 endless waves</b>!<br>Prestige to reset your run in exchange for a permanent <b style="color:#ffd700">+10% damage bonus</b> that stacks across prestiges.</p>
+    <div id="prestige-current" style="color:#88ccff;font-size:.88rem;margin-bottom:16px;"></div>
+    <div style="display:flex;gap:10px;justify-content:center;">
+      <button onclick="doPrestige()" style="background:linear-gradient(135deg,#b8860b,#ffd700);border:none;color:#000;font-weight:700;padding:10px 22px;border-radius:8px;cursor:pointer;font-size:.95rem;letter-spacing:.05em;">✨ PRESTIGE</button>
+      <button onclick="closePrestige()" style="background:#1a1f3a;border:1px solid #2a3060;color:#aaa;padding:10px 18px;border-radius:8px;cursor:pointer;">CONTINUE</button>
+    </div>
+  </div>
+</div>
 <div id="wave-preview"><div id="wp-label">NEXT WAVE</div><div id="wp-enemies"></div></div>
 
 <script>
@@ -544,6 +573,7 @@ const EDEFS={
   bomber:  {name:'Bomber',  col:'#ff8800',sz:10, hpm:2.5,  spm:0.9, rwd:20,shape:'star',   lives:2,explodes:true},
   split:      {name:'Splitter',  col:'#44aaff',sz:9,  hpm:1.8,  spm:0.9, rwd:14,shape:'hex',   lives:1,splits:true},
   armsplit:   {name:'IronSplit', col:'#cc88ff',sz:10, hpm:3.0,  spm:0.75,rwd:22,shape:'hex',   lives:2,armor:.30,splitArmored:true},
+  phantom_e:  {name:'Wraith',   col:'#ccffee',sz:8,  hpm:1.6,  spm:1.3, rwd:18,shape:'diamond',lives:1,cloaks:true},
   boss:       {name:'BOSS',    col:'#ff3333',sz:18, hpm:18,   spm:0.5, rwd:90,shape:'boss',   lives:3,summon:'normal',sumCount:3},
   teleboss:{name:'TELEPORT',col:'#ff44ff',sz:16, hpm:14,   spm:0.55,rwd:75,shape:'boss',   lives:3,teleports:true},
   megaboss:{name:'OVERLORD',col:'#ff00ff',sz:24, hpm:45,   spm:0.4, rwd:220,shape:'boss',  lives:5,summon:'boss',sumCount:2,mega:true},
@@ -579,19 +609,19 @@ function mkLevel(i){
     else if(n<=7)   q.push({t:'normal',c:Math.ceil(tot*.2)},{t:'fast',c:Math.ceil(tot*.3)},{t:'heavy',c:Math.floor(tot*.3)},{t:'split',c:Math.floor(tot*.2)});
     else if(n<=9)   q.push({t:'armored',c:Math.ceil(tot*.35)},{t:'fast',c:Math.ceil(tot*.25)},{t:'split',c:Math.ceil(tot*.25)},{t:'healer',c:3});
     else if(n===10) q.push({t:'boss',c:w>=3?2:1},{t:'teleboss',c:w>=4?1:0},{t:'heavy',c:Math.ceil(tot*.35)},{t:'armored',c:Math.ceil(tot*.3)});
-    else if(n<=12)  q.push({t:'armored',c:Math.ceil(tot*.25)},{t:'healer',c:4},{t:'swarm',c:Math.ceil(tot*.8)},{t:'split',c:Math.ceil(tot*.25)},{t:'bomber',c:Math.ceil(tot*.12)});
-    else if(n<=14)  q.push({t:'bomber',c:Math.ceil(tot*.2)},{t:'healer',c:5},{t:'armored',c:Math.ceil(tot*.4)},{t:'armsplit',c:Math.ceil(tot*.12)},{t:'split',c:Math.ceil(tot*.2)},{t:'fast',c:Math.ceil(tot*.2)});
-    else if(n===15) q.push({t:'megaboss',c:1},{t:'teleboss',c:w>=3?2:1},{t:'boss',c:w>=4?2:1},{t:'armored',c:10},{t:'armsplit',c:3});
-    else if(n<=17)  q.push({t:'megaboss',c:w>=5?1:0},{t:'teleboss',c:w>=3?1:0},{t:'boss',c:w>=3?1:0},{t:'armored',c:Math.ceil(tot*.4)},{t:'healer',c:5},{t:'split',c:Math.ceil(tot*.35)});
-    else if(n<=19)  q.push({t:'megaboss',c:w>=4?2:1},{t:'teleboss',c:2},{t:'boss',c:2},{t:'armored',c:Math.ceil(tot*.45)},{t:'bomber',c:Math.ceil(tot*.3)},{t:'split',c:Math.ceil(tot*.3)});
-    else if(n===20) q.push({t:'megaboss',c:2},{t:'teleboss',c:2},{t:'boss',c:3},{t:'armored',c:tot},{t:'healer',c:8},{t:'split',c:Math.ceil(tot*.4)});
+    else if(n<=12)  q.push({t:'armored',c:Math.ceil(tot*.25)},{t:'healer',c:4},{t:'swarm',c:Math.ceil(tot*.8)},{t:'split',c:Math.ceil(tot*.25)},{t:'bomber',c:Math.ceil(tot*.12)},{t:'phantom_e',c:Math.ceil(tot*.12)});
+    else if(n<=14)  q.push({t:'bomber',c:Math.ceil(tot*.2)},{t:'healer',c:5},{t:'armored',c:Math.ceil(tot*.4)},{t:'armsplit',c:Math.ceil(tot*.12)},{t:'split',c:Math.ceil(tot*.2)},{t:'fast',c:Math.ceil(tot*.2)},{t:'phantom_e',c:Math.ceil(tot*.15)});
+    else if(n===15) q.push({t:'megaboss',c:1},{t:'teleboss',c:w>=3?2:1},{t:'boss',c:w>=4?2:1},{t:'armored',c:10},{t:'armsplit',c:3},{t:'phantom_e',c:4});
+    else if(n<=17)  q.push({t:'megaboss',c:w>=5?1:0},{t:'teleboss',c:w>=3?1:0},{t:'boss',c:w>=3?1:0},{t:'armored',c:Math.ceil(tot*.4)},{t:'healer',c:5},{t:'split',c:Math.ceil(tot*.35)},{t:'phantom_e',c:Math.ceil(tot*.2)});
+    else if(n<=19)  q.push({t:'megaboss',c:w>=4?2:1},{t:'teleboss',c:2},{t:'boss',c:2},{t:'armored',c:Math.ceil(tot*.45)},{t:'bomber',c:Math.ceil(tot*.3)},{t:'split',c:Math.ceil(tot*.3)},{t:'phantom_e',c:Math.ceil(tot*.2)});
+    else if(n===20) q.push({t:'megaboss',c:2},{t:'teleboss',c:2},{t:'boss',c:3},{t:'armored',c:tot},{t:'healer',c:8},{t:'split',c:Math.ceil(tot*.4)},{t:'phantom_e',c:6});
     // Levels 21-30: brutal escalation
-    else if(n<=22)  q.push({t:'megaboss',c:w>=4?2:1},{t:'teleboss',c:2},{t:'boss',c:3},{t:'armored',c:Math.ceil(tot*.5)},{t:'healer',c:6},{t:'swarm',c:Math.ceil(tot*.6)},{t:'split',c:Math.ceil(tot*.4)});
-    else if(n<=24)  q.push({t:'megaboss',c:2},{t:'teleboss',c:3},{t:'boss',c:4},{t:'armored',c:tot},{t:'healer',c:8},{t:'bomber',c:Math.ceil(tot*.3)},{t:'split',c:Math.ceil(tot*.5)});
-    else if(n===25) q.push({t:'megaboss',c:3},{t:'teleboss',c:3},{t:'boss',c:4},{t:'armored',c:tot},{t:'healer',c:10},{t:'swarm',c:tot},{t:'split',c:Math.ceil(tot*.5)});
-    else if(n<=27)  q.push({t:'megaboss',c:3},{t:'teleboss',c:4},{t:'boss',c:5},{t:'armored',c:Math.ceil(tot*1.2)},{t:'healer',c:10},{t:'bomber',c:Math.ceil(tot*.4)},{t:'split',c:Math.ceil(tot*.6)});
-    else if(n<=29)  q.push({t:'megaboss',c:4},{t:'teleboss',c:5},{t:'boss',c:6},{t:'armored',c:Math.ceil(tot*1.4)},{t:'healer',c:12},{t:'swarm',c:Math.ceil(tot*1.5)},{t:'split',c:Math.ceil(tot*.7)});
-    else            q.push({t:'megaboss',c:5},{t:'teleboss',c:6},{t:'boss',c:8},{t:'armored',c:Math.ceil(tot*1.8)},{t:'healer',c:14},{t:'swarm',c:tot*2},{t:'bomber',c:Math.ceil(tot*.5)},{t:'split',c:Math.ceil(tot*.8)});
+    else if(n<=22)  q.push({t:'megaboss',c:w>=4?2:1},{t:'teleboss',c:2},{t:'boss',c:3},{t:'armored',c:Math.ceil(tot*.5)},{t:'healer',c:6},{t:'swarm',c:Math.ceil(tot*.6)},{t:'split',c:Math.ceil(tot*.4)},{t:'phantom_e',c:Math.ceil(tot*.25)});
+    else if(n<=24)  q.push({t:'megaboss',c:2},{t:'teleboss',c:3},{t:'boss',c:4},{t:'armored',c:tot},{t:'healer',c:8},{t:'bomber',c:Math.ceil(tot*.3)},{t:'split',c:Math.ceil(tot*.5)},{t:'phantom_e',c:Math.ceil(tot*.3)});
+    else if(n===25) q.push({t:'megaboss',c:3},{t:'teleboss',c:3},{t:'boss',c:4},{t:'armored',c:tot},{t:'healer',c:10},{t:'swarm',c:tot},{t:'split',c:Math.ceil(tot*.5)},{t:'phantom_e',c:8});
+    else if(n<=27)  q.push({t:'megaboss',c:3},{t:'teleboss',c:4},{t:'boss',c:5},{t:'armored',c:Math.ceil(tot*1.2)},{t:'healer',c:10},{t:'bomber',c:Math.ceil(tot*.4)},{t:'split',c:Math.ceil(tot*.6)},{t:'phantom_e',c:Math.ceil(tot*.35)});
+    else if(n<=29)  q.push({t:'megaboss',c:4},{t:'teleboss',c:5},{t:'boss',c:6},{t:'armored',c:Math.ceil(tot*1.4)},{t:'healer',c:12},{t:'swarm',c:Math.ceil(tot*1.5)},{t:'split',c:Math.ceil(tot*.7)},{t:'phantom_e',c:Math.ceil(tot*.4)});
+    else            q.push({t:'megaboss',c:5},{t:'teleboss',c:6},{t:'boss',c:8},{t:'armored',c:Math.ceil(tot*1.8)},{t:'healer',c:14},{t:'swarm',c:tot*2},{t:'bomber',c:Math.ceil(tot*.5)},{t:'split',c:Math.ceil(tot*.8)},{t:'phantom_e',c:Math.ceil(tot*.5)});
     waves.push(q.filter(x=>x.c>0));
   }
   return{n,isBoss,hm,sm,goldReward,startGold,goldDecay,waveCount,waves,seed:n*17+5,startLives:20,branching};
@@ -615,9 +645,9 @@ function mkEndlessWave(w){
   let q = [];
   const tot = 15 + w * 2;
   if(tier === 0)      q=[{t:'normal',c:tot},{t:'fast',c:Math.ceil(tot*.5)},{t:'armored',c:Math.ceil(tot*.3)}];
-  else if(tier === 1) q=[{t:'heavy',c:Math.ceil(tot*.4)},{t:'armored',c:Math.ceil(tot*.5)},{t:'healer',c:5},{t:'split',c:Math.ceil(tot*.3)}];
-  else if(tier === 2) q=[{t:'megaboss',c:isBoss?2:0},{t:'boss',c:isBoss?3:1},{t:'armsplit',c:Math.ceil(tot*.3)},{t:'bomber',c:Math.ceil(tot*.3)},{t:'healer',c:8},{t:'teleboss',c:isBoss?2:0}];
-  else                q=[{t:'megaboss',c:1+Math.floor(w/30)},{t:'teleboss',c:2+Math.floor(w/20)},{t:'boss',c:3+Math.floor(w/15)},{t:'armsplit',c:tot},{t:'healer',c:12},{t:'bomber',c:Math.ceil(tot*.5)},{t:'swarm',c:tot*2}];
+  else if(tier === 1) q=[{t:'heavy',c:Math.ceil(tot*.4)},{t:'armored',c:Math.ceil(tot*.5)},{t:'healer',c:5},{t:'split',c:Math.ceil(tot*.3)},{t:'phantom_e',c:Math.ceil(tot*.2)}];
+  else if(tier === 2) q=[{t:'megaboss',c:isBoss?2:0},{t:'boss',c:isBoss?3:1},{t:'armsplit',c:Math.ceil(tot*.3)},{t:'bomber',c:Math.ceil(tot*.3)},{t:'healer',c:8},{t:'teleboss',c:isBoss?2:0},{t:'phantom_e',c:Math.ceil(tot*.25)}];
+  else                q=[{t:'megaboss',c:1+Math.floor(w/30)},{t:'teleboss',c:2+Math.floor(w/20)},{t:'boss',c:3+Math.floor(w/15)},{t:'armsplit',c:tot},{t:'healer',c:12},{t:'bomber',c:Math.ceil(tot*.5)},{t:'swarm',c:tot*2},{t:'phantom_e',c:Math.ceil(tot*.4)}];
   q = q.filter(x=>x.c>0);
   return { n:'∞', isBoss, hm, sm, goldDecay, goldReward, startGold,
     waveCount:1, waves:[q], seed:(w*31+7)%997+1, startLives:20, branching:(w%6===0) };
@@ -632,9 +662,9 @@ function startEndless(){
 // ══════════════════════════════════════
 //  SAVE & DAILY QUESTS
 // ══════════════════════════════════════
-let save={ul:1,hi:0,ts:0,stars:{},tokens:0,shopLevels:{},questProgress:{},questClaimed:{},questDate:'',unlockedTowers:{}};
-try{const r=localStorage.getItem('td2_v5');if(r)save={...save,...JSON.parse(r)};}catch(e){}
-function writeSave(){try{localStorage.setItem('td2_v5',JSON.stringify(save));}catch(e){}}
+let save={ul:1,hi:0,ts:0,stars:{},tokens:0,shopLevels:{},questProgress:{},questClaimed:{},questDate:'',unlockedTowers:{},endlessBest:0,prestigeCount:0,prestigeDmgBonus:0};
+try{const r=localStorage.getItem('td2_v6');if(r)save={...save,...JSON.parse(r)};}catch(e){}
+function writeSave(){try{localStorage.setItem('td2_v6',JSON.stringify(save));}catch(e){}}
 const LEVELS=Array.from({length:30},(_,i)=>mkLevel(i));
 
 function todayStr(){const d=new Date();return`${d.getFullYear()}-${d.getMonth()}-${d.getDate()}`;}
@@ -697,7 +727,7 @@ function updateQuestBadge(){
 // SBONUSES reads shop upgrades per-level cost
 function shopCost(u){return(u.costs||[u.cost||5])[Math.min(save.shopLevels[u.id]||0,(u.costs||[]).length-1)]||u.cost||5;}
 const SBONUSES={
-  dmgMult: ()=>1+(save.shopLevels.dmg||0)*.10,
+  dmgMult: ()=>(1+(save.shopLevels.dmg||0)*.10)*(1+(save.prestigeDmgBonus||0)),
   rngMult: ()=>1+(save.shopLevels.rng||0)*.06,
   rteMult: ()=>1+(save.shopLevels.rte||0)*.06,
   extraLives:()=>save.shopLevels.lives||0,
@@ -1292,6 +1322,7 @@ const GUIDE_ENEMIES=[
   {type:'bomber',   threat:3, lore:'Death triggers a blast damaging nearby enemies. Strategic kills can chain — or devastate your economy.'},
   {type:'split',    threat:2, lore:'Spawns two fast Runners on death. Area-damage towers clean up the runners before they reach the base.'},
   {type:'armsplit', threat:3, lore:'A mutated variant that splits into two Armoured units. Tougher than a Splitter. Kill with armour-piercing rounds.'},
+  {type:'phantom_e',threat:3, lore:'The Wraith periodically vanishes from all tower targeting. It cannot be hit or damaged while cloaked. Time your bursts for the reveal window.'},
   {type:'boss',     threat:4, lore:'A colossal commander. Summons reinforcements and enters a frenzied RAGE below 25% HP — moving 45% faster.'},
   {type:'teleboss', threat:4, lore:'Phase-shifts forward along the path at random intervals. Spread your towers — it may skip half the track.'},
   {type:'megaboss', threat:5, lore:'The apex predator. Summons Boss-class units and rages at 25% HP. Every tower must fire in concert.'},
@@ -1532,6 +1563,12 @@ function buildMap(){
   document.getElementById('ms-hi').textContent=save.hi;
   document.getElementById('ms-st').textContent=Object.values(save.stars).reduce((a,b)=>a+b,0);
   document.getElementById('ms-tok').textContent=save.tokens;
+  const pc=save.prestigeCount||0;
+  const pw=document.getElementById('ms-prestige-wrap');
+  if(pc>0){pw.style.display='';document.getElementById('ms-prestige').textContent=`${pc} (+${pc*10}% DMG)`;}else pw.style.display='none';
+  const eb=save.endlessBest||0;
+  const ew=document.getElementById('ms-endless-wrap');
+  if(eb>0){ew.style.display='';document.getElementById('ms-endless').textContent=eb;}else ew.style.display='none';
   // Endless mode node — only visible after beating level 30
   const endlessUnlocked=save.ul>30;
   const ewrap=document.createElement('div');ewrap.className='node-wrap endless-wrap';
@@ -1554,6 +1591,8 @@ function showScreen(id){
   document.getElementById('quests-modal').classList.remove('show');
   document.getElementById('guide-modal').classList.remove('show');
   document.getElementById('cheat-modal').classList.remove('show');
+  document.getElementById('stats-modal').style.display='none';
+  document.getElementById('prestige-modal').style.display='none';
   ttClose();
   document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
   document.getElementById(id).classList.add('active');
@@ -1869,6 +1908,20 @@ function update(dt){
       floats.push({x:en.x,y:en.y-20,txt:'RAGE!',col:'#ff0000',life:1.8,sz:16});
     }
     if(en.teleports){if(!en.teleCD)en.teleCD=3+Math.random()*4;en.teleCD-=dt;if(en.teleCD<=0){en.teleCD=3+Math.random()*4;const jump=8+Math.floor(Math.random()*10);const path=en.pathB?PATH2:PATH;en.pathIdx=Math.min(en.pathIdx+jump,path.length-2);notify('⚡ TELEPORTER jumped!','#ff44ff');parts.push(...Array.from({length:10},()=>{const a=Math.random()*Math.PI*2;return{x:en.x,y:en.y,vx:Math.cos(a)*60,vy:Math.sin(a)*60,col:'#ff44ff',life:.4,sz:3};}));}}
+    // Wraith cloak: cycles visible→invisible→visible
+    if(en.cloaks){
+      en.cloakTimer-=dt;
+      if(en.cloakTimer<=0){
+        en.cloaked=!en.cloaked;
+        en.cloakTimer=en.cloaked?2.5+Math.random()*1.5:1.5+Math.random()*1.5;
+        if(en.cloaked){
+          floats.push({x:en.x,y:en.y-en.sz-8,txt:'👻 CLOAKED',col:'#ccffee',life:.9,sz:9});
+          parts.push(...Array.from({length:8},()=>{const a=Math.random()*Math.PI*2;return{x:en.x,y:en.y,vx:Math.cos(a)*30,vy:Math.sin(a)*30,col:'#ccffee',life:.4,sz:2};}));
+        } else {
+          floats.push({x:en.x,y:en.y-en.sz-8,txt:'👁 REVEALED',col:'#ff8844',life:.9,sz:9});
+        }
+      }
+    }
     moveEnemy(en,dt);
     const path=en.pathB?PATH2:PATH;
     if(en.pathIdx>=(path.length||PATH.length)){lives=Math.max(0,lives-en.liveCost);en.dead=true;shakeT=.25;updateHUD();if(lives<=0){endGame();return;}}
@@ -1944,6 +1997,7 @@ function getTarget(tw){
   let best=null,bestVal=tw.priority==='last'?Infinity:tw.priority==='weak'?Infinity:-1;
   for(const en of enemies){
     if(en.dead)continue;
+    if(en.cloaked)continue; // Wraith — invisible to towers
     const d=Math.hypot(en.x-tw.x,en.y-tw.y);if(d>rng)continue;
     const path=(en.pathB&&PATH2.length)?PATH2:PATH;
     const v=tw.priority==='first'?en.pathIdx:tw.priority==='last'?en.pathIdx:tw.priority==='strong'?en.hp:en.hp;
@@ -1981,11 +2035,12 @@ function towerFatigueMult(tw){
 
 function spawnProj(tw,tgt){
   tw.shots=(tw.shots||0)+1;
+  tw.dmgDealt=tw.dmgDealt||0;
   const xpM=towerXPMult(tw);
   const comboM=towerComboMult(tw);
   const wardM=wardenMult(tw);
   const fatM=towerFatigueMult(tw);
-  projs.push({x:tw.x,y:tw.y,tgt,dmg:tw.dmg*SBONUSES.dmgMult()*synergyMult(tw)*xpM*comboM*wardM*fatM,splR:(tw.splR||0)*CELL,slw:tw.slw||0,
+  projs.push({x:tw.x,y:tw.y,tgt,src:tw,dmg:tw.dmg*SBONUSES.dmgMult()*synergyMult(tw)*xpM*comboM*wardM*fatM,splR:(tw.splR||0)*CELL,slw:tw.slw||0,
     col:tw.col,spd:270+Math.random()*40,dead:false,
     pierce:tw.ttype==='sniper'||tw.ttype==='missile'||tw.ttype==='omega',
     burn:tw.ttype==='inferno',ttype:tw.ttype,
@@ -2006,11 +2061,13 @@ function firePierce(tw,tgt){
   let hitCount=0;
   for(const en of enemies){
     if(en.dead)continue;
+    if(en.cloaked)continue;
     // Point-to-line distance check
     const t=Math.max(0,Math.min(len,(en.x-ax)*ux+(en.y-ay)*uy));
     const px=ax+ux*t,py=ay+uy*t;
     if(Math.hypot(en.x-px,en.y-py)<=en.sz+6&&t<=rng){
       en.hp-=dmg; // phantoms always pierce armour
+      tw.dmgDealt=(tw.dmgDealt||0)+dmg;
       floats.push({x:en.x+(Math.random()-.5)*8,y:en.y-en.sz-2,txt:'-'+Math.ceil(dmg),col:tw.col,life:.7,sz:9});
       if(en.hp<=0)killEnemy(en);
       hitCount++;
@@ -2030,9 +2087,11 @@ function doImpact(p,hx,hy){
   const r=Math.max(p.splR,2);
   for(const en of enemies){
     if(en.dead)continue;
+    if(en.cloaked)continue;
     if(Math.hypot(en.x-hx,en.y-hy)<=r){
       let dmg=p.dmg;if(en.armor&&!p.pierce)dmg*=(1-en.armor);
       en.hp-=dmg;
+      if(p.src)p.src.dmgDealt=(p.src.dmgDealt||0)+dmg;
       if(p.slw)en.slow=Math.min(.92,en.slow+p.slw);
       if(p.burn){en.burnTime=5;en.burnDmg=p.dmg*.4;}
       floats.push({x:en.x+(Math.random()-.5)*10,y:en.y-en.sz-2,txt:'-'+Math.ceil(dmg),col:p.col,life:.7,sz:9+Math.min(dmg/80,5)});
@@ -2050,7 +2109,8 @@ function spawnEnemy(type){
   const[pr,pc]=PATH[0];
   enemies.push({type,x:pc*CELL+CELL/2,y:pr*CELL+CELL/2,pathIdx:1,pathB:undefined,hp,maxHp:hp,sp,slow:0,dead:false,
     col:ed.col,sz:ed.sz+(curLv>18?2:0),shape:ed.shape,armor:ed.armor||0,liveCost:ed.lives||1,
-    heals:ed.heals||false,teleports:ed.teleports||false,teleCD:0,angle:0,burnTime:0,burnDmg:0,ed});
+    heals:ed.heals||false,teleports:ed.teleports||false,teleCD:0,angle:0,burnTime:0,burnDmg:0,
+    cloaks:ed.cloaks||false,cloaked:false,cloakTimer:2+Math.random()*2,ed});
 }
 
 function killEnemy(en){
@@ -2295,6 +2355,15 @@ function drawEnemy(en){
   CX.save();CX.translate(en.x,en.y);const sz=en.sz;
   if(en.slow>.25){CX.globalAlpha=en.slow*.5;CX.fillStyle='#88ddff';CX.beginPath();CX.arc(0,0,sz+5,0,Math.PI*2);CX.fill();CX.globalAlpha=1;}
   if(en.burnTime>0){CX.globalAlpha=.4;CX.fillStyle='#ff8800';CX.beginPath();CX.arc(0,0,sz+4,0,Math.PI*2);CX.fill();CX.globalAlpha=1;}
+  // Wraith cloak: fade out when invisible, show ghost shimmer
+  if(en.cloaked){
+    CX.globalAlpha=0.12+Math.abs(Math.sin(Date.now()*.003))*.1;
+    CX.fillStyle='#ccffee';CX.beginPath();CX.arc(0,0,sz+3,0,Math.PI*2);CX.fill();
+    CX.globalAlpha=0.18;
+  } else if(en.cloaks){
+    // Briefly shimmer as cloak fades in/out
+    CX.globalAlpha=1;
+  }
   if(en.heals){CX.beginPath();CX.arc(0,0,CELL*2.5,0,Math.PI*2);CX.strokeStyle='rgba(0,255,136,.14)';CX.lineWidth=2;CX.stroke();}
   if(en.teleports){const t=Date.now()*.004;CX.globalAlpha=.3+Math.sin(t)*.2;CX.fillStyle='#ff44ff';CX.beginPath();CX.arc(0,0,sz+6,0,Math.PI*2);CX.fill();CX.globalAlpha=1;}
   if(en.raging){const t=Date.now()*.008;CX.globalAlpha=.55+Math.sin(t)*.3;CX.fillStyle='#ff0000';CX.beginPath();CX.arc(0,0,sz+8,0,Math.PI*2);CX.fill();CX.globalAlpha=1;}
@@ -2309,15 +2378,110 @@ function drawEnemy(en){
     case 'boss':    CX.beginPath();for(let i=0;i<8;i++){const a=i*Math.PI/4,r2=i%2?sz*.65:sz;CX.lineTo(Math.cos(a)*r2,Math.sin(a)*r2);}CX.closePath();CX.fill();CX.stroke();CX.fillStyle='rgba(0,0,0,.5)';CX.beginPath();CX.arc(0,0,sz*.42,0,Math.PI*2);CX.fill();CX.fillStyle='#fff';CX.beginPath();CX.arc(-sz*.24,-sz*.1,sz*.14,0,Math.PI*2);CX.fill();CX.beginPath();CX.arc(sz*.24,-sz*.1,sz*.14,0,Math.PI*2);CX.fill();CX.fillStyle=en.ed.mega?'#f0f':'#f00';CX.beginPath();CX.arc(-sz*.24,-sz*.1,sz*.08,0,Math.PI*2);CX.fill();CX.beginPath();CX.arc(sz*.24,-sz*.1,sz*.08,0,Math.PI*2);CX.fill();break;
   }
   CX.shadowBlur=0;
-  const bw=sz*3,bh=4,bx=-sz*1.5,by=-sz-10;
-  CX.fillStyle='rgba(0,0,0,.7)';CX.fillRect(bx-1,by-1,bw+2,bh+2);CX.fillStyle='#300';CX.fillRect(bx,by,bw,bh);
-  const pct=en.hp/en.maxHp;CX.fillStyle=pct>.6?'#00ff88':pct>.3?'#ffd700':'#ff3d5a';CX.fillRect(bx,by,bw*Math.max(0,pct),bh);
-  if(en.shape==='boss'){CX.font='bold 9px Exo 2';CX.textAlign='center';CX.fillStyle=en.col;CX.fillText(en.ed.name,0,-sz-14);CX.textAlign='left';}
+  if(!en.cloaked){
+    const bw=sz*3,bh=4,bx=-sz*1.5,by=-sz-10;
+    CX.fillStyle='rgba(0,0,0,.7)';CX.fillRect(bx-1,by-1,bw+2,bh+2);CX.fillStyle='#300';CX.fillRect(bx,by,bw,bh);
+    const pct=en.hp/en.maxHp;CX.fillStyle=pct>.6?'#00ff88':pct>.3?'#ffd700':'#ff3d5a';CX.fillRect(bx,by,bw*Math.max(0,pct),bh);
+    if(en.shape==='boss'){CX.font='bold 9px Exo 2';CX.textAlign='center';CX.fillStyle=en.col;CX.fillText(en.ed.name,0,-sz-14);CX.textAlign='left';}
+  }
+  CX.globalAlpha=1;
   CX.restore();
 }
 
 function drawLightning(x1,y1,x2,y2,col){CX.save();CX.strokeStyle=col;CX.lineWidth=1.5;CX.shadowColor=col;CX.shadowBlur=14;CX.beginPath();CX.moveTo(x1,y1);const s=8,dx=(x2-x1)/s,dy=(y2-y1)/s;for(let i=1;i<=s;i++)CX.lineTo(x1+dx*i+(Math.random()-.5)*14,y1+dy*i+(Math.random()-.5)*14);CX.stroke();CX.restore();}
 function roundRect(ctx,x,y,w,h,r){ctx.beginPath();ctx.moveTo(x+r,y);ctx.lineTo(x+w-r,y);ctx.arcTo(x+w,y,x+w,y+r,r);ctx.lineTo(x+w,y+h-r);ctx.arcTo(x+w,y+h,x+w-r,y+h,r);ctx.lineTo(x+r,y+h);ctx.arcTo(x,y+h,x,y+h-r,r);ctx.lineTo(x,y+r);ctx.arcTo(x,y,x+r,y,r);ctx.closePath();}
+
+// ══════════════════════════════════════
+//  TOWER STATS SCREEN
+// ══════════════════════════════════════
+function showStats(afterFn){
+  const modal=document.getElementById('stats-modal');
+  modal.style.display='block';
+
+  // Summary row
+  const totalDmg=towers.reduce((s,t)=>s+(t.dmgDealt||0),0);
+  const totalKills=towers.reduce((s,t)=>s+(t.kills||0),0);
+  const summary=document.getElementById('stats-summary');
+  const sc=(label,val,col)=>`<div style="background:#111828;border-radius:8px;padding:10px 8px;text-align:center;"><div style="font-size:1.1rem;font-weight:700;color:${col}">${val}</div><div style="font-size:.7rem;color:#778;margin-top:2px;letter-spacing:.06em;">${label}</div></div>`;
+  summary.innerHTML=
+    sc('TOWERS PLACED',towers.length,'#88ccff')+
+    sc('TOTAL KILLS',totalKills,'#00ff88')+
+    sc('TOTAL DAMAGE',totalDmg>=1e6?(totalDmg/1e6).toFixed(1)+'M':totalDmg>=1e3?(totalDmg/1e3).toFixed(1)+'K':Math.ceil(totalDmg),'#ffd700');
+
+  // Sort towers by dmgDealt desc
+  const sorted=[...towers].sort((a,b)=>(b.dmgDealt||0)-(a.dmgDealt||0));
+  const list=document.getElementById('stats-list');
+  list.innerHTML='';
+  const maxDmg=sorted[0]?(sorted[0].dmgDealt||0):1;
+
+  sorted.forEach((tw,idx)=>{
+    const dmg=tw.dmgDealt||0;
+    const pct=maxDmg>0?dmg/maxDmg:0;
+    const xpStr='⭐'.repeat(tw.xpLv||0)||'·';
+    const mvp=idx===0&&dmg>0?' 👑':'';
+    const bar=`<div style="height:6px;background:#1a1f3a;border-radius:3px;margin:4px 0 2px;overflow:hidden;"><div style="height:100%;width:${Math.round(pct*100)}%;background:${tw.col};border-radius:3px;transition:width .3s;"></div></div>`;
+    const item=document.createElement('div');
+    item.style.cssText='background:#111828;border:1px solid #1e2545;border-radius:8px;padding:10px 12px;';
+    item.innerHTML=`<div style="display:flex;align-items:center;justify-content:space-between;gap:8px;">
+      <span style="font-size:1.1rem">${tw.icon||'🗼'}</span>
+      <span style="flex:1;color:#e8eaf6;font-size:.88rem;font-weight:600;">${tw.name}${mvp}</span>
+      <span style="color:#778;font-size:.75rem;">Lv${tw.upgradeLevel||0} ${xpStr}</span>
+      <span style="color:#ffd700;font-size:.85rem;font-weight:700;">${dmg>=1e6?(dmg/1e6).toFixed(2)+'M':dmg>=1e3?(dmg/1e3).toFixed(1)+'K':Math.ceil(dmg)}</span>
+    </div>${bar}
+    <div style="display:flex;gap:12px;font-size:.72rem;color:#556;">
+      <span>💀 ${tw.kills||0} kills</span>
+      <span>🔫 ${tw.shots||0} shots</span>
+      <span style="color:${(tw.shots||0)>500?'#ff8844':'#556'};">${(tw.shots||0)>500?'🔥 '+(Math.round((1-Math.max(.6,1-Math.floor(((tw.shots||0)-500)/100)*.01))*100))+'% worn':''}</span>
+    </div>`;
+    list.appendChild(item);
+  });
+
+  // Action buttons
+  const btns=document.getElementById('stats-btns');
+  btns.innerHTML='';
+  if(afterFn){
+    afterFn._pending=true;
+    const actions=afterFn();
+    actions.forEach(a=>{
+      if(!a)return;
+      const b=document.createElement('button');
+      b.className='ovbtn';b.textContent=a.t;
+      b.onclick=()=>{closeStats();a.fn();};
+      btns.appendChild(b);
+    });
+  }
+}
+function closeStats(){document.getElementById('stats-modal').style.display='none';}
+
+// ══════════════════════════════════════
+//  PRESTIGE SYSTEM
+// ══════════════════════════════════════
+function checkPrestige(){
+  if(!endlessMode)return;
+  if((endlessWave-1)===50&&save.prestigeCount===0||(endlessWave-1)===50*(save.prestigeCount+1)){
+    showPrestige();
+  }
+}
+function showPrestige(){
+  const count=save.prestigeCount||0;
+  const nextBonus=((count+1)*0.10*100).toFixed(0);
+  document.getElementById('prestige-current').innerHTML=
+    count>0?`Current prestiges: <b style="color:#ffd700">${count}</b> &nbsp;|&nbsp; Current bonus: <b style="color:#ffd700">+${(count*10)}% dmg</b><br>After this prestige: <b style="color:#fff">+${nextBonus}% dmg</b> total`
+           :`After prestige: <b style="color:#ffd700">+10% permanent damage</b>`;
+  const m=document.getElementById('prestige-modal');
+  m.style.display='flex';
+}
+function closePrestige(){document.getElementById('prestige-modal').style.display='none';}
+function doPrestige(){
+  save.prestigeCount=(save.prestigeCount||0)+1;
+  save.prestigeDmgBonus=(save.prestigeCount)*0.10;
+  // Reset progress but keep tokens and shop
+  save.ul=1;save.stars={};
+  writeSave();
+  closePrestige();
+  notify(`✨ PRESTIGE ${save.prestigeCount}! +${save.prestigeCount*10}% DMG PERMANENTLY`,'#ffd700');
+  goMap();
+}
 
 // ══════════════════════════════════════
 //  WIN / LOSE
@@ -2332,6 +2496,7 @@ function levelWin(){
     }
     const tok=endlessWave%5===0?2:0; // bonus tokens every 5 waves
     if(tok){save.tokens=(save.tokens||0)+tok;writeSave();}
+    checkPrestige(); // offer prestige at wave 50, 100, 150...
     const milestoneMsg=endlessWave%10===1?`<br><span style="color:#ff6600">🔥 WAVE ${endlessWave-1} SURVIVED — TIER ${Math.floor((endlessWave-1)/10)+1}</span>`:'';
     showOverlay(`∞ WAVE ${endlessWave-1} CLEARED`,
       `Endless Mode<br>Score: <b>${score}</b>${milestoneMsg}${tok?`<br><b style="color:#ffd700">+${tok}🪙 milestone bonus</b>`:''}`,
@@ -2371,6 +2536,7 @@ function levelWin(){
   showOverlay(stars+' COMPLETE',
     `Level ${curLv+1}: ${LV_NAMES[curLv]}<br>Score: <b>${score}</b> &nbsp; Best: <b>${save.hi}</b><br>Lives: ${lives}/${sl} &nbsp; <b style="color:#ffd700">+${tokEarned}🪙</b>`,
     [curLv<29?{t:'▶ NEXT',fn:()=>startLv(curLv+1)}:curLv===29?{t:'∞ ENDLESS',fn:startEndless}:null,
+     {t:'📊 STATS',fn:()=>showStats(()=>[curLv<29?{t:'▶ NEXT',fn:()=>startLv(curLv+1)}:curLv===29?{t:'∞ ENDLESS',fn:startEndless}:null,{t:'↺ RETRY',fn:()=>startLv(curLv)},{t:'◀ MAP',fn:goMap}])},
      {t:'↺ RETRY',fn:()=>startLv(curLv)},{t:'◀ MAP',fn:goMap}].filter(Boolean));
 }
 
@@ -2383,14 +2549,16 @@ function endGame(){
     writeSave();
     showOverlay('💀 ENDLESS OVER',
       `Survived <b style="color:#ff6600">${survived} waves</b><br>Score: <b>${score}</b><br>Best: <b>${save.endlessBest}</b> waves<br><span style="color:#ffd700">+1🪙 for playing</span>`,
-      [{t:'↺ RESTART ENDLESS',fn:()=>{endlessWave=1;startEndless();}},{t:'◀ MAP',fn:()=>{endlessMode=false;goMap();}}]);
+      [{t:'📊 STATS',fn:()=>showStats(()=>[{t:'↺ RESTART',fn:()=>{endlessWave=1;startEndless();}},{t:'◀ MAP',fn:()=>{endlessMode=false;goMap();}}])},
+       {t:'↺ RESTART',fn:()=>{endlessWave=1;startEndless();}},{t:'◀ MAP',fn:()=>{endlessMode=false;goMap();}}]);
     return;
   }
   save.tokens=(save.tokens||0)+1;save.ts=(save.ts||0)+score;save.hi=Math.max(save.hi||0,score);
   writeSave();
   showOverlay('💀 DEFEATED',
     `Level ${curLv+1} · Wave ${wave}<br>Score: <b>${score}</b><br><span style="color:#ffd700">+1🪙 for playing</span>`,
-    [{t:'↺ RETRY',fn:()=>startLv(curLv)},{t:'◀ MAP',fn:goMap}]);
+    [{t:'📊 STATS',fn:()=>showStats(()=>[{t:'↺ RETRY',fn:()=>startLv(curLv)},{t:'◀ MAP',fn:goMap}])},
+     {t:'↺ RETRY',fn:()=>startLv(curLv)},{t:'◀ MAP',fn:goMap}]);
 }
 
 function showOverlay(title,msg,btns){
@@ -2421,7 +2589,7 @@ function updateHUD(){
 // ══════════════════════════════════════
 //  WAVE PREVIEW
 // ══════════════════════════════════════
-const EICONS={normal:'🔵',fast:'🟡',heavy:'🟠',armored:'🔷',swarm:'🟤',healer:'💚',bomber:'💣',split:'🔹',armsplit:'💜',boss:'💀',teleboss:'⚡',megaboss:'☠'};
+const EICONS={normal:'🔵',fast:'🟡',heavy:'🟠',armored:'🔷',swarm:'🟤',healer:'💚',bomber:'💣',split:'🔹',armsplit:'💜',phantom_e:'👁️',boss:'💀',teleboss:'⚡',megaboss:'☠'};
 function updateWavePreview(){
   const lv=LEVELS[curLv];
   const wp=document.getElementById('wave-preview');
