@@ -503,7 +503,7 @@ html,body{width:100%;height:100%;overflow:hidden;background:#06090f;font-family:
     </div>
   </div>
 </div>
-<div id="wave-preview"><div id="wp-label">⚠ INCOMING</div><div id="wp-enemies"></div></div>
+<div id="wave-preview"><div id="wp-label">⚠ INCOMING</div><div id="wp-enemies"></div><div id="wave-timer-wrap" style="width:100%;margin-top:4px;height:4px;background:#111;border-radius:2px;overflow:hidden;flex-shrink:0"><div id="wave-timer-bar" style="height:100%;width:0%;border-radius:2px;transition:none;"></div></div><div id="wave-timer-lbl" style="font-family:'Bangers',sans-serif;font-size:9px;color:#00cc44;white-space:nowrap;"></div></div>
 
 <script>
 'use strict';
@@ -528,6 +528,19 @@ html,body{width:100%;height:100%;overflow:hidden;background:#06090f;font-family:
   btn.onclick=go;inp.onkeydown=e=>{if(e.key==='Enter')go();};
   window.onload=()=>setTimeout(()=>inp.focus(),150);
 })();
+
+// ══════════════════════════════════════
+//  PRESTIGE COSMETICS
+// ══════════════════════════════════════
+const PRESTIGE_SKINS=[
+  null, // 0 = none
+  {base:'#0e1428',border:'#aaaacc',glow:'#8888bb',label:'✦',name:'Silver'},      // 1
+  {base:'#14100a',border:'#ffd700',glow:'#ffaa00',label:'★',name:'Gold'},         // 2
+  {base:'#180808',border:'#ff3333',glow:'#cc0000',label:'♦',name:'Crimson'},      // 3
+  {base:'#0e0818',border:'#cc44ff',glow:'#8800ff',label:'☽',name:'Void'},         // 4
+  {base:'#080818',border:'#ff44ff',glow:'#ff00ff',label:'✺',name:'Spectral'},     // 5+
+];
+function getSkin(){const pc=save.prestigeCount||0;return pc>=5?PRESTIGE_SKINS[5]:PRESTIGE_SKINS[pc]||null;}
 
 // ══════════════════════════════════════
 //  TOWER DEFINITIONS
@@ -779,7 +792,7 @@ let adaptMult=1.0; // adaptive difficulty multiplier
 let waveStartLives=0; // lives at start of each wave
 let waveActive=false,spawnQ=[],spawnT=0,spawnTotal=0;
 let selType=null,ttTower=null,ttAX=0,ttAY=0;
-let curLv=0,gameSpeed=1,running=false,isDaily=false,isPaused=false;
+let curLv=0,gameSpeed=1,running=false,isDaily=false,isPaused=false,waveTimer=0,waveTimerMax=0;
 let mouseX=0,mouseY=0,shakeT=0,livesUpCount=0;
 let raf=0,lastTs=0;
 // Quest run trackers
@@ -1647,7 +1660,7 @@ function startLv(idx){
   gold=lv.startGold+SBONUSES.startBonus();
   lives=lv.startLives+bonusLives;
   startLives_=lives;
-  score=0;wave=0;waveActive=false;running=true;livesUpCount=0;adaptMult=1.0;waveStartLives=0;isPaused=false;
+  score=0;wave=0;waveActive=false;running=true;livesUpCount=0;adaptMult=1.0;waveStartLives=0;isPaused=false;waveTimer=0;waveTimerMax=0;
   if(idx!==30)endlessMode=false;
   towers=[];enemies=[];projs=[];parts=[];floats=[];
   spawnQ=[];spawnT=0;spawnTotal=0;
@@ -1768,12 +1781,33 @@ function adaptPath(){
   notify('⚠ Path shifted!','#ff8800');
   floats.push({x:CW/2,y:CH/2-30,txt:'PATH ADAPTED',col:'#ff8800',life:2,sz:16});
 }
+// ══════════════════════════════════════
+//  SYNERGY COMBO TABLE
+// ══════════════════════════════════════
+const SYNERGIES=[
+  {a:'frost',  b:'tesla',    name:'Superconductor', col:'#bf5fff', mult:1.40, desc:'Frozen arcs shred armour'},
+  {a:'frost',  b:'laser',    name:'Cryo-Beam',      col:'#00ddff', mult:1.35, desc:'Laser overcharges in cold air'},
+  {a:'laser',  b:'sniper',   name:'Target Lock',    col:'#00ff88', mult:1.38, desc:'Laser paints targets for sniper'},
+  {a:'cannon', b:'missile',  name:'Carpet Bomb',    col:'#ff8c00', mult:1.45, desc:'Overlapping blasts devastate clusters'},
+  {a:'cannon', b:'inferno',  name:'Incendiary',     col:'#ff4400', mult:1.35, desc:'Shells ignite on impact'},
+  {a:'inferno',b:'void',     name:'Dark Flame',     col:'#cc44ff', mult:1.50, desc:'Void singularity feeds on heat'},
+  {a:'tesla',  b:'void',     name:'Arc Rift',       col:'#8844ff', mult:1.42, desc:'Lightning tears open dimensional rifts'},
+  {a:'sniper', b:'overwatch',name:'Eagle Eye',      col:'#ff4466', mult:1.55, desc:'Overwatch marks; sniper executes'},
+  {a:'warden', b:'missile',  name:'War Machine',    col:'#ffcc44', mult:1.48, desc:'Warden aura amplifies blast radius'},
+  {a:'chrono', b:'inferno',  name:'Time Burn',      col:'#ff6600', mult:1.45, desc:'Slowed enemies burn for longer'},
+  {a:'phantom',b:'sniper',   name:'Ghost Round',    col:'#aaffdd', mult:1.52, desc:'Phantom phase-locks sniper shots'},
+  {a:'omega',  b:'void',     name:'Singularity',    col:'#ff2200', mult:1.60, desc:'Nuclear mass collapses into void'},
+];
+
 function getSynergy(tw){
-  const partner=tw.ttype==='frost'?'tesla':tw.ttype==='tesla'?'frost':null;
-  if(!partner)return null;
-  return towers.find(o=>o!==tw&&o.ttype===partner&&Math.hypot(o.r-tw.r,o.c-tw.c)<=2)?partner:null;
+  for(const s of SYNERGIES){
+    const partner=tw.ttype===s.a?s.b:tw.ttype===s.b?s.a:null;
+    if(!partner)continue;
+    if(towers.find(o=>o!==tw&&o.ttype===partner&&Math.hypot(o.r-tw.r,o.c-tw.c)<=2))return s;
+  }
+  return null;
 }
-function synergyMult(tw){return getSynergy(tw)?1.3:1;}
+function synergyMult(tw){const s=getSynergy(tw);return s?s.mult:1;}
 
 // ══════════════════════════════════════
 //  SIDEBAR
@@ -1846,7 +1880,7 @@ function updateTTContent(){
   document.getElementById('tt-pips').innerHTML=pip+` <span style="font-size:9px;color:#3a5878">Lv${ttTower.upgradeLevel+1}/${ups.length+1}</span>`;
   const syn=getSynergy(ttTower);
   const synEl=document.getElementById('tt-syn');
-  synEl.style.display=syn?'block':'none';if(syn)synEl.textContent=`⚡ Synergy +30% dmg`;
+  synEl.style.display=syn?'block':'none';if(syn){synEl.textContent=`⚡ ${syn.name} ×${syn.mult.toFixed(2)} dmg`;synEl.style.color=syn.col;}
   const comboM=towerComboMult(ttTower);
   const fatM=towerFatigueMult(ttTower);
   const comboBonus=comboM>1?` <span style="color:#00ffaa">${comboM>=1.35?'×3':' ×2'} combo</span>`:'';
@@ -1892,6 +1926,14 @@ function sellVal(t){return Math.floor((TDEFS[t.ttype].cost+TUPG[t.ttype].slice(0
 function sendWave(){
   const lv=LEVELS[curLv];if(waveActive||wave>=lv.waveCount)return;
   waveStartLives=lives;
+  // Early wave bonus gold
+  if(waveTimer>0&&waveTimerMax>0){
+    const bonus=Math.round((waveTimer/waveTimerMax)*30);
+    if(bonus>0){gold+=bonus;updateHUD();notify(`⚡ EARLY! +${bonus}💰 bonus`,'#00cc44');}
+  }
+  waveTimer=0;waveTimerMax=0;
+  const el=document.getElementById('wave-timer-bar');if(el)el.style.width='0%';
+  const lbl=document.getElementById('wave-timer-lbl');if(lbl)lbl.textContent='';
   wave++;waveActive=true;document.getElementById('wavebtn').disabled=true;
   const comp=lv.waves[wave-1];spawnQ=[];
   comp.forEach(g=>{for(let i=0;i<g.c;i++)spawnQ.push(g.t);});
@@ -1919,6 +1961,18 @@ function togglePause(){if(!running)return;isPaused=!isPaused;const btn=document.
 // ══════════════════════════════════════
 function update(dt){
   if(waveActive&&spawnQ.length>0){spawnT-=dt;if(spawnT<=0){spawnEnemy(spawnQ.shift());spawnT=0.26+Math.random()*.16;}}
+  // Wave timer countdown (only between waves)
+  if(!waveActive&&waveTimer>0&&wave<LEVELS[curLv].waveCount){
+    waveTimer=Math.max(0,waveTimer-dt/gameSpeed);
+    const pct=waveTimer/waveTimerMax;
+    const el=document.getElementById('wave-timer-bar');
+    if(el){el.style.width=(pct*100)+'%';el.style.background=pct>.5?'#00cc44':pct>.25?'#ff8c00':'#ff3300';}
+    const lbl=document.getElementById('wave-timer-lbl');
+    if(lbl){const sec=Math.ceil(waveTimer);lbl.textContent=waveTimer>0?`+${Math.round(pct*30)}💰 EARLY BONUS`:'SEND WAVE';}
+    if(waveTimer<=0){
+      const el2=document.getElementById('wave-timer-bar');if(el2)el2.style.width='0%';
+    }
+  }
 
   // Boss bar
   const bosses=enemies.filter(e=>!e.dead&&(e.type==='boss'||e.type==='megaboss'||e.type==='teleboss'));
@@ -2078,7 +2132,7 @@ function update(dt){
     // Adaptive difficulty: if player took no damage this wave AND wave>=3, escalate
     if(lives>=waveStartLives&&wave>=2){
       adaptMult=Math.min(3.0, adaptMult+0.28);
-      floats.push({x:CW/2,y:CH/2-20,txt:'⚡ DIFFICULTY UP!',col:'#ff4444',life:2.0,sz:14});
+      
       notify('⚡ No damage taken — enemies get stronger!','#ff4444');
     } else if(lives<waveStartLives){
       adaptMult=Math.max(1.0, adaptMult-0.05);
@@ -2091,6 +2145,7 @@ function update(dt){
       const btn=document.getElementById('wavebtn');
       btn.disabled=false;
       updateWavePreview();
+      waveTimerMax=18; waveTimer=18;
     }
   }
 }
@@ -2373,7 +2428,26 @@ function render(){
     }
   }
   // Synergy lines
-  for(const tw of towers){if(!getSynergy(tw))continue;const partner=towers.find(o=>o!==tw&&(tw.ttype==='frost'?o.ttype==='tesla':o.ttype==='frost')&&Math.hypot(o.r-tw.r,o.c-tw.c)<=2);if(partner){CX.save();CX.strokeStyle='rgba(191,95,255,.35)';CX.lineWidth=2;CX.setLineDash([4,4]);CX.beginPath();CX.moveTo(tw.x,tw.y);CX.lineTo(partner.x,partner.y);CX.stroke();CX.setLineDash([]);CX.restore();}}
+  const _drawnSyn=new Set();
+  for(const tw of towers){
+    const s=getSynergy(tw);if(!s)continue;
+    const partnerType=tw.ttype===s.a?s.b:s.a;
+    const partner=towers.find(o=>o!==tw&&o.ttype===partnerType&&Math.hypot(o.r-tw.r,o.c-tw.c)<=2);
+    if(!partner)continue;
+    const key=[tw,partner].map(t=>t.x+','+t.y).sort().join('|');
+    if(_drawnSyn.has(key))continue;_drawnSyn.add(key);
+    CX.save();
+    CX.strokeStyle=s.col+'55';CX.lineWidth=2;CX.setLineDash([4,4]);
+    CX.shadowColor=s.col;CX.shadowBlur=6;
+    CX.beginPath();CX.moveTo(tw.x,tw.y);CX.lineTo(partner.x,partner.y);CX.stroke();
+    CX.setLineDash([]);CX.shadowBlur=0;
+    // Label at midpoint
+    const mx=(tw.x+partner.x)/2,my=(tw.y+partner.y)/2;
+    CX.font=`bold ${Math.max(7,CELL*.16)}px Bangers`;CX.fillStyle=s.col;
+    CX.textAlign='center';CX.globalAlpha=.85;
+    CX.fillText(s.name,mx,my-6);CX.globalAlpha=1;
+    CX.restore();
+  }
   for(const tw of towers){if(tw.ttype!=='laser')continue;const tgt=getTarget(tw);if(!tgt||tgt.dead)continue;CX.save();const g=CX.createLinearGradient(tw.x,tw.y,tgt.x,tgt.y);g.addColorStop(0,tw.col);g.addColorStop(1,'transparent');CX.strokeStyle=g;CX.lineWidth=3;CX.shadowColor=tw.col;CX.shadowBlur=18;CX.beginPath();CX.moveTo(tw.x,tw.y);CX.lineTo(tgt.x,tgt.y);CX.stroke();CX.restore();}
   for(const tw of towers){if(tw.ttype!=='tesla')continue;const tgt=getTarget(tw);if(tgt&&!tgt.dead)drawLightning(tw.x,tw.y,tgt.x,tgt.y,'#bf5fff');}
   if(ttTower){CX.beginPath();CX.arc(ttTower.x,ttTower.y,ttTower.rng*CELL*SBONUSES.rngMult(),0,Math.PI*2);CX.strokeStyle=ttTower.col+'55';CX.fillStyle=ttTower.col+'0a';CX.lineWidth=2;CX.fill();CX.stroke();}
@@ -2440,17 +2514,42 @@ function drawPath(pts,dashCol){
 
 function drawTowerBase(tw){
   CX.save();CX.translate(tw.x,tw.y);const s=CELL*.44;
-  roundRect(CX,-s,-s,s*2,s*2,5);CX.fillStyle='#090b1c';CX.fill();
+  roundRect(CX,-s,-s,s*2,s*2,5);
+  const _skin=getSkin();
+  CX.fillStyle=_skin?_skin.base:'#090b1c';CX.fill();
+  // Prestige glow ring behind tower
+  if(_skin){
+    const _t=Date.now()*.0015;
+    CX.globalAlpha=0.18+Math.sin(_t+tw.x)*.06;
+    CX.strokeStyle=_skin.glow;CX.lineWidth=3;
+    CX.shadowColor=_skin.glow;CX.shadowBlur=10;
+    CX.beginPath();CX.arc(0,0,s+2,0,Math.PI*2);CX.stroke();
+    CX.shadowBlur=0;CX.globalAlpha=1;
+    // Spectral rainbow override
+    if((save.prestigeCount||0)>=5){
+      const hue=(Date.now()*.1+tw.x*0.5)%360;
+      CX.globalAlpha=0.22;CX.strokeStyle=`hsl(${hue},100%,65%)`;
+      CX.lineWidth=3;CX.beginPath();CX.arc(0,0,s+2,0,Math.PI*2);CX.stroke();CX.globalAlpha=1;
+    }
+  }
   const syn=getSynergy(tw);
   const combo=towerComboMult(tw);
   // Border colour priority: max upgrade > combo > synergy > selected > default
   let strokeCol=tw.col+'88', strokeW=1.5;
   if(tw===ttTower){strokeCol=tw.col+'ff';strokeW=2;}
-  if(syn){strokeCol='#bf5fff';strokeW=2;}
+  if(syn){strokeCol=syn.col;strokeW=2;}
   if(combo>1){strokeCol='#00ffaa';strokeW=2;}
   if(tw.upgradeLevel>=3){strokeCol='#ffd700';strokeW=2.5;}
   const fatigue=towerFatigueMult(tw);
   if(fatigue<1){strokeCol='#ff3300';strokeW=2;} // fatigued — red override
+  // Prestige border override (only if no higher-priority state)
+  if(_skin&&tw!==ttTower&&!getSynergy(tw)&&towerComboMult(tw)===1&&(tw.upgradeLevel||0)<3&&towerFatigueMult(tw)>=1){
+    strokeCol=_skin.border;
+  }
+  // Prestige border override (only if no higher-priority state)
+  if(_skin&&tw!==ttTower&&!getSynergy(tw)&&towerComboMult(tw)===1&&(tw.upgradeLevel||0)<3&&towerFatigueMult(tw)>=1){
+    strokeCol=_skin.border;
+  }
   CX.strokeStyle=strokeCol;CX.lineWidth=strokeW;CX.stroke();
   // Fatigue heat shimmer on heavily degraded towers
   if(fatigue<=0.75){
@@ -2459,6 +2558,11 @@ function drawTowerBase(tw){
   }
   // Upgrade pips
   for(let i=0;i<tw.upgradeLevel;i++){CX.fillStyle=tw.upgradeLevel>=3?'#ffd700':tw.col;CX.beginPath();CX.arc(-5+i*5,s-5,2.5,0,Math.PI*2);CX.fill();}
+  if(_skin&&_skin.label){
+    CX.font=`bold ${Math.max(6,CELL*.14)}px Bangers`;CX.fillStyle=_skin.border;
+    CX.textAlign='right';CX.globalAlpha=.7;
+    CX.fillText(_skin.label,s-2,-s+8);CX.globalAlpha=1;
+  }
   // (XP system removed)
   // Show upgrade cost on selected tower
   if(tw===ttTower){
@@ -2700,7 +2804,9 @@ function doPrestige(){
   save.ul=1;save.stars={};
   writeSave();
   closePrestige();
-  notify(`✨ PRESTIGE ${save.prestigeCount}! +${save.prestigeCount*10}% DMG PERMANENTLY`,'#ffd700');
+  const _skins=['','Silver','Gold','Crimson','Void','Spectral'];
+  const _sn=_skins[Math.min(save.prestigeCount,5)]||'Spectral';
+  notify(`✨ PRESTIGE ${save.prestigeCount}! +${save.prestigeCount*10}% DMG · ${_sn} skin unlocked!`,'#ffd700');
   goMap();
 }
 
@@ -2777,11 +2883,8 @@ function endGame(){
   save.tokens=(save.tokens||0)+1;save.ts=(save.ts||0)+score;save.hi=Math.max(save.hi||0,score);
   if(!endlessMode){save.failCounts=save.failCounts||{};save.failCounts[curLv]=(save.failCounts[curLv]||0)+1;}
   writeSave();
-  const fails_=( save.failCounts&&save.failCounts[curLv])||0;
-  const nextMercy=Math.round((1-Math.max(0.4,1-(fails_+1)*0.12))*100);
-  const mercyMsg=fails_>=1?`<br><span style="color:#44aaff">🛡 Enemies are now ${Math.round((1-Math.max(0.4,1-fails_*0.12))*100)}% weaker · retry!</span>`:'';
   showOverlay('💀 DEFEATED',
-    `Level ${curLv+1} · Wave ${wave}<br>Score: <b>${score}</b><br><span style="color:#ffd700">+1🪙 for playing</span>${mercyMsg}`,
+    `Level ${curLv+1} · Wave ${wave}<br>Score: <b>${score}</b><br><span style="color:#ffd700">+1🪙 for playing</span>`,
     [{t:'📊 STATS',fn:()=>showStats(()=>[{t:'↺ RETRY',fn:()=>startLv(curLv)},{t:'◀ MAP',fn:goMap}])},
      {t:'↺ RETRY',fn:()=>startLv(curLv)},{t:'◀ MAP',fn:goMap}]);
 }
