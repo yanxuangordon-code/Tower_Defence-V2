@@ -129,6 +129,10 @@ html,body{width:100%;height:100%;overflow:hidden;background:#06090f;font-family:
 #hud-right{display:flex;gap:5px;margin-left:auto;align-items:center;flex-shrink:0;}
 .hudbtn{padding:5px 11px;border:none;font-family:'Bangers',sans-serif;font-size:10px;font-weight:700;cursor:pointer;border-radius:4px;letter-spacing:2px;white-space:nowrap;transition:.13s;}
 #wavebtn{background:linear-gradient(135deg,#00aaff,#0055bb);color:#fff;}
+.ability-btn{display:flex;flex-direction:column;align-items:center;gap:1px;padding:3px 7px;border-radius:6px;cursor:pointer;font-family:'Bangers',sans-serif;min-width:52px;transition:.15s;}
+.ability-btn:hover{filter:brightness(1.3);}
+.ab-name{font-size:7px;letter-spacing:.5px;white-space:nowrap;}
+.ab-cd{font-size:7px;color:#aaa;white-space:nowrap;}
 #wavebtn:hover:not([disabled]){filter:brightness(1.3);}
 #wavebtn[disabled]{opacity:.28;cursor:default;}
 #livebtn{background:rgba(0,255,136,.1);border:1px solid #00ff88;color:#00ff88;font-size:9px;padding:4px 8px;}
@@ -382,6 +386,7 @@ html,body{width:100%;height:100%;overflow:hidden;background:#06090f;font-family:
         <div class="gtab" onclick="showGuidePage('pips')" id="gtab-pips"><span class="gtab-icon">📊</span>INDICATORS</div>
         <div class="gtab" onclick="showGuidePage('mechanics')" id="gtab-mechanics"><span class="gtab-icon">⚙</span>MECHANICS</div>
         <div class="gtab" onclick="showGuidePage('combos')" id="gtab-combos"><span class="gtab-icon">⚡</span>COMBOS</div>
+        <div class="gtab" onclick="showGuidePage('abilities')" id="gtab-abilities"><span class="gtab-icon">🎯</span>ABILITIES</div>
       </div>
       <div id="guide-page">
         <div class="gpage on" id="gpage-enemies"></div>
@@ -389,6 +394,7 @@ html,body{width:100%;height:100%;overflow:hidden;background:#06090f;font-family:
         <div class="gpage" id="gpage-pips"></div>
         <div class="gpage" id="gpage-mechanics"></div>
         <div class="gpage" id="gpage-combos"></div>
+        <div class="gpage" id="gpage-abilities"></div>
       </div>
     </div>
   </div>
@@ -436,6 +442,7 @@ html,body{width:100%;height:100%;overflow:hidden;background:#06090f;font-family:
         <button class="spdbtn" onclick="setSpd(3)">3×</button>
       </div>
       <div id="hud-right">
+        <div id="ability-bar" style="display:none;gap:4px;align-items:center;"></div>
         <button class="hudbtn" id="livebtn" onclick="buyLife()">+❤️ 60💰</button>
         <button class="hudbtn" id="backbtn" onclick="goMap()">◀ MAP</button>
         <button class="hudbtn" id="wavebtn" onclick="sendWave()">▶ SEND WAVE</button>
@@ -555,7 +562,7 @@ const TDEFS={
   missile:{name:'Missile',icon:'🚀',col:'#ff8c00',ul:5, cost:140,dmg:160,rng:5.0,rte:0.45,splR:2.0,slw:0},
   tesla:  {name:'Tesla',  icon:'🌩', col:'#bf5fff',ul:7, cost:160,dmg:55, rng:3.5,rte:1.5,splR:1.5,slw:0.3},
   inferno:{name:'Inferno',icon:'🔥',col:'#ff3d5a',ul:9, cost:200,dmg:40, rng:3.0,rte:3.0,splR:0.9,slw:0},
-  void:   {name:'Void',   icon:'🌀',col:'#7744ff',ul:13,cost:280,dmg:250,rng:5.5,rte:0.3,splR:2.2,slw:0.4},
+  void:   {name:'Void',   icon:'🌀',col:'#7744ff',ul:13,cost:280,dmg:180,rng:5.5,rte:0.3,splR:1.8,slw:0.4},
   // ── TOKEN-EXCLUSIVE TOWERS ──
   phantom:{name:'Phantom', icon:'👻',col:'#aaffdd',ul:1,cost:200,dmg:70, rng:6.5,rte:1.2,splR:0,  slw:0,  tokenOnly:true,tokenCost:40,
            special:'Pierce beam — hits ALL enemies in a line. Ignores armour.'},
@@ -567,7 +574,7 @@ const TDEFS={
            special:'Time-slow field — slows ALL enemies in range by 75%. No attack.'},
   overwatch:{name:'Overwatch',icon:'👁️',col:'#ff4466',ul:1,cost:350,dmg:0,rng:7.0,rte:0,splR:0,slw:0, tokenOnly:true,tokenCost:45,
              special:'Marks the highest-threat enemy — ALL towers instantly volley it simultaneously. 8s cooldown.'},
-  ramsey:  {name:'Cipher', icon:'🔫',col:'#ff2244',ul:1,cost:160,dmg:70,rng:5.5,rte:9.0,splR:0,slw:0, tokenOnly:true,tokenCost:90,
+  ramsey:  {name:'Cipher', icon:'🔫',col:'#ff2244',ul:1,cost:160,dmg:120,rng:5.5,rte:12.0,splR:0.35,slw:0, tokenOnly:true,tokenCost:90,
              special:'Unmatched fire rate — 8 shots/sec with armour-shredding rounds. The ultimate rapid assault tower.'},
 };
 const TUPG={
@@ -578,18 +585,25 @@ const TUPG={
   missile:[{c:160,dmg:160,rng:5.5,rte:.45,n:'Cluster'},   {c:250,dmg:270,rng:6.0,rte:.5, n:'Nuke Jr.'},    {c:400,dmg:520,rng:7.0,rte:.55,n:'ICBM'}],
   tesla:  [{c:180,dmg:90, rng:4.0,rte:1.7,n:'Overload'},  {c:270,dmg:160,rng:4.5,rte:2.0,n:'Thunderstorm'},{c:440,dmg:290,rng:5.5,rte:2.5,n:'ZEUS PROTOCOL'}],
   inferno:[{c:220,dmg:65, rng:3.2,rte:3.5,n:'Napalm'},    {c:330,dmg:105,rng:3.5,rte:4.2,n:'Hellfire'},    {c:520,dmg:185,rng:4.5,rte:5.0,n:'DRAGON WRATH'}],
-  void:   [{c:420,dmg:420,rng:6.0,rte:.33,n:'Dark Matter'},{c:650,dmg:720,rng:6.5,rte:.38,n:'Event Horizon'},{c:950,dmg:1400,rng:7.5,rte:.44,n:'APOCALYPSE'}],
+  void:   [{c:420,dmg:300,rng:6.0,rte:.33,splR:2.0,n:'Dark Matter'},{c:650,dmg:500,rng:6.5,rte:.38,splR:2.2,n:'Event Horizon'},{c:950,dmg:900,rng:7.5,rte:.44,splR:2.5,n:'APOCALYPSE'}],
   phantom:[{c:220,dmg:110,rng:7.0,rte:1.4,n:'Phase Shift'},{c:360,dmg:180,rng:7.5,rte:1.7,n:'Wraith Form'},{c:560,dmg:300,rng:8.5,rte:2.2,n:'SPECTRAL DOOM'}],
   omega:  [{c:600,dmg:800,rng:6.5,rte:.40,n:'Fission'},    {c:900,dmg:1300,rng:7.0,rte:.45,n:'Fusion'},     {c:1400,dmg:2400,rng:8.0,rte:.52,n:'SINGULARITY'}],
   warden: [{c:280,dmg:0,rng:4.0,rte:0,n:'Iron Aura'},      {c:440,dmg:0,rng:4.5,rte:0,n:'Bulwark'},         {c:680,dmg:0,rng:5.5,rte:0,n:'DIVINE SHIELD'}],
   chrono: [{c:320,dmg:0,rng:4.5,rte:0,n:'Time Dilation'},  {c:500,dmg:0,rng:5.0,rte:0,n:'Slow Reality'},    {c:780,dmg:0,rng:6.0,rte:0,n:'TEMPORAL LOCK'}],
   overwatch:[{c:300,dmg:0,rng:7.5,rte:0,n:'Target Lock'},{c:480,dmg:0,rng:8.0,rte:0,n:'Priority Override'},{c:750,dmg:0,rng:9.0,rte:0,n:'TOTAL LOCKDOWN'}],
-  ramsey: [{c:280,dmg:110,rng:5.8,rte:10.5,n:'Extended Mag'},{c:480,dmg:160,rng:6.2,rte:12.0,n:'Dual Barrels'},{c:750,dmg:260,rng:7.0,rte:14.0,pierce:true,n:'FULL AUTO LEGEND'}],
+  ramsey: [{c:280,dmg:180,rng:5.8,rte:14.0,splR:0.5,n:'Decrypt'},{c:480,dmg:260,rng:6.2,rte:16.0,splR:0.7,n:'Blacksite'},{c:750,dmg:420,rng:6.8,rte:18.0,splR:1.0,n:'ZERO-DAY'}],
 };
 
 // ══════════════════════════════════════
 //  TOKEN SHOP — higher costs, meaningful upgrades
 // ══════════════════════════════════════
+const ABILITIES=[
+  {id:'freeze',  icon:'❄️', name:'Deep Freeze',   desc:'Freezes ALL enemies solid for 3 seconds.',         cd:45,  cost:18, col:'#44ddff'},
+  {id:'missile', icon:'🚀', name:'Giant Missile',  desc:'Massive rocket hits the furthest enemy — huge AoE.', cd:30, cost:14, col:'#ff8800'},
+  {id:'surge',   icon:'⚡', name:'Power Surge',    desc:'All towers fire at 2× speed for 5 seconds.',       cd:60,  cost:22, col:'#ffd700'},
+  {id:'airstrike',icon:'💣',name:'Airstrike',      desc:'Carpet bombs every tile on the path.',              cd:50,  cost:20, col:'#ff4422'},
+];
+
 const SHOP_UPGRADES=[
   {id:'dmg',  icon:'⚔️', name:'Damage Core',    desc:'+10% damage per level (all towers)',  costs:[10,14,20,28,38],  max:5},
   {id:'rng',  icon:'🔭', name:'Targeting Array', desc:'+6% range per level (all towers)',    costs:[6,8,12,16,22],   max:5},
@@ -634,10 +648,10 @@ const LV_NAMES=[
 
 function mkLevel(i){
   const n=i+1, isBoss=(n%5===0);
-  const hm=1+i*.30+Math.pow(i/12,2)*0.8;   // tuned HP scaling
-  const sm=1+i*.055+Math.pow(i/20,2)*.35;   // tuned speed scaling
-  const goldDecay=Math.max(0.35, 1-i*.022);
-  const startGold=Math.round((200+i*22)*goldDecay*2); // startBonus applied at runtime
+  const hm=1+i*.14+Math.pow(i/18,2)*0.35;  // softened HP scaling
+  const sm=1+i*.032+Math.pow(i/25,2)*.18;   // softened speed scaling
+  const goldDecay=Math.max(0.55, 1-i*.015);
+  const startGold=Math.round((350+i*45+Math.pow(i/7,2)*40)*goldDecay*2); // startBonus applied at runtime
   const goldReward=Math.round((9+i*2+(isBoss?15:0))*goldDecay);
   const base=8+i*3, waveCount=5;
   const branching=(i===5||i===11||i===17||i===23||i===29||i===35);
@@ -646,28 +660,28 @@ function mkLevel(i){
     const tot=base+w*3, q=[];
     if(n<=2)        q.push({t:'normal',c:tot});
     else if(n<=4)   q.push({t:'normal',c:Math.ceil(tot*.55)},{t:'fast',c:Math.floor(tot*.45)});
-    else if(n===5)  q.push({t:'boss',c:1},{t:'normal',c:8},{t:'fast',c:6});
-    else if(n<=7)   q.push({t:'normal',c:Math.ceil(tot*.2)},{t:'fast',c:Math.ceil(tot*.3)},{t:'heavy',c:Math.floor(tot*.3)},{t:'split',c:Math.floor(tot*.2)});
-    else if(n<=9)   q.push({t:'armored',c:Math.ceil(tot*.35)},{t:'fast',c:Math.ceil(tot*.25)},{t:'split',c:Math.ceil(tot*.25)},{t:'healer',c:3});
-    else if(n===10) q.push({t:'boss',c:w>=3?2:1},{t:'teleboss',c:w>=4?1:0},{t:'heavy',c:Math.ceil(tot*.35)},{t:'armored',c:Math.ceil(tot*.3)});
-    else if(n<=12)  q.push({t:'armored',c:Math.ceil(tot*.25)},{t:'healer',c:4},{t:'swarm',c:Math.ceil(tot*.8)},{t:'split',c:Math.ceil(tot*.25)},{t:'bomber',c:Math.ceil(tot*.12)},{t:'phantom_e',c:Math.ceil(tot*.12)});
-    else if(n<=14)  q.push({t:'bomber',c:Math.ceil(tot*.2)},{t:'healer',c:5},{t:'armored',c:Math.ceil(tot*.4)},{t:'armsplit',c:Math.ceil(tot*.12)},{t:'split',c:Math.ceil(tot*.2)},{t:'fast',c:Math.ceil(tot*.2)},{t:'phantom_e',c:Math.ceil(tot*.15)});
-    else if(n===15) q.push({t:'megaboss',c:1},{t:'teleboss',c:w>=3?2:1},{t:'boss',c:w>=4?2:1},{t:'armored',c:10},{t:'armsplit',c:3},{t:'phantom_e',c:4});
-    else if(n<=17)  q.push({t:'megaboss',c:w>=5?1:0},{t:'teleboss',c:w>=3?1:0},{t:'boss',c:w>=3?1:0},{t:'armored',c:Math.ceil(tot*.4)},{t:'healer',c:5},{t:'split',c:Math.ceil(tot*.35)},{t:'phantom_e',c:Math.ceil(tot*.2)});
-    else if(n<=19)  q.push({t:'megaboss',c:w>=4?2:1},{t:'teleboss',c:2},{t:'boss',c:2},{t:'armored',c:Math.ceil(tot*.45)},{t:'bomber',c:Math.ceil(tot*.3)},{t:'split',c:Math.ceil(tot*.3)},{t:'phantom_e',c:Math.ceil(tot*.2)});
-    else if(n===20) q.push({t:'megaboss',c:2},{t:'teleboss',c:2},{t:'boss',c:3},{t:'armored',c:tot},{t:'healer',c:8},{t:'split',c:Math.ceil(tot*.4)},{t:'phantom_e',c:6});
-    // Levels 21-30: brutal escalation
-    else if(n<=22)  q.push({t:'megaboss',c:w>=4?2:1},{t:'teleboss',c:2},{t:'boss',c:3},{t:'armored',c:Math.ceil(tot*.5)},{t:'healer',c:6},{t:'swarm',c:Math.ceil(tot*.6)},{t:'split',c:Math.ceil(tot*.4)},{t:'phantom_e',c:Math.ceil(tot*.25)});
-    else if(n<=24)  q.push({t:'megaboss',c:2},{t:'teleboss',c:3},{t:'boss',c:4},{t:'armored',c:tot},{t:'healer',c:8},{t:'bomber',c:Math.ceil(tot*.3)},{t:'split',c:Math.ceil(tot*.5)},{t:'phantom_e',c:Math.ceil(tot*.3)});
-    else if(n===25) q.push({t:'megaboss',c:3},{t:'teleboss',c:3},{t:'boss',c:4},{t:'armored',c:tot},{t:'healer',c:10},{t:'swarm',c:tot},{t:'split',c:Math.ceil(tot*.5)},{t:'phantom_e',c:8});
-    else if(n<=27)  q.push({t:'megaboss',c:3},{t:'teleboss',c:4},{t:'boss',c:5},{t:'armored',c:Math.ceil(tot*1.2)},{t:'healer',c:10},{t:'bomber',c:Math.ceil(tot*.4)},{t:'split',c:Math.ceil(tot*.6)},{t:'phantom_e',c:Math.ceil(tot*.35)});
-    else if(n<=29)  q.push({t:'megaboss',c:4},{t:'teleboss',c:5},{t:'boss',c:6},{t:'armored',c:Math.ceil(tot*1.4)},{t:'healer',c:12},{t:'swarm',c:Math.ceil(tot*1.5)},{t:'split',c:Math.ceil(tot*.7)},{t:'phantom_e',c:Math.ceil(tot*.4)});
-    else if(n<=32)  q.push({t:'megaboss',c:5+w},{t:'teleboss',c:6},{t:'boss',c:8},{t:'armored',c:Math.ceil(tot*1.8)},{t:'healer',c:12},{t:'phantom_e',c:Math.ceil(tot*.4)});
-    else if(n<=34)  q.push({t:'megaboss',c:6+w},{t:'teleboss',c:7},{t:'boss',c:10},{t:'armsplit',c:Math.ceil(tot*.5)},{t:'bomber',c:Math.ceil(tot*.4)},{t:'healer',c:14},{t:'phantom_e',c:Math.ceil(tot*.5)});
-    else if(n===35) q.push({t:'megaboss',c:4+w*2},{t:'teleboss',c:8},{t:'boss',c:12},{t:'armsplit',c:tot},{t:'armored',c:tot},{t:'healer',c:16},{t:'phantom_e',c:tot});
-    else if(n<=37)  q.push({t:'megaboss',c:6+w*2},{t:'teleboss',c:9},{t:'boss',c:14},{t:'armsplit',c:Math.ceil(tot*1.2)},{t:'bomber',c:Math.ceil(tot*.6)},{t:'healer',c:18},{t:'phantom_e',c:Math.ceil(tot*.8)});
-    else if(n<=39)  q.push({t:'megaboss',c:8+w*2},{t:'teleboss',c:10},{t:'boss',c:16},{t:'armsplit',c:Math.ceil(tot*1.5)},{t:'bomber',c:Math.ceil(tot*.8)},{t:'healer',c:20},{t:'phantom_e',c:tot});
-    else            q.push({t:'megaboss',c:10+w*3},{t:'teleboss',c:12},{t:'boss',c:20},{t:'armsplit',c:Math.ceil(tot*2)},{t:'bomber',c:Math.ceil(tot)},{t:'healer',c:24},{t:'phantom_e',c:Math.ceil(tot*1.2)});
+    else if(n===5)  q.push({t:'boss',c:1},{t:'normal',c:6},{t:'fast',c:5});
+    else if(n<=7)   q.push({t:'normal',c:Math.ceil(tot*.2)},{t:'fast',c:Math.ceil(tot*.3)},{t:'heavy',c:Math.floor(tot*.25)},{t:'split',c:Math.floor(tot*.15)});
+    else if(n<=9)   q.push({t:'armored',c:Math.ceil(tot*.25)},{t:'fast',c:Math.ceil(tot*.2)},{t:'split',c:Math.ceil(tot*.2)},{t:'healer',c:2});
+    else if(n===10) q.push({t:'boss',c:w>=4?2:1},{t:'teleboss',c:w>=5?1:0},{t:'heavy',c:Math.ceil(tot*.25)},{t:'armored',c:Math.ceil(tot*.2)});
+    else if(n<=12)  q.push({t:'armored',c:Math.ceil(tot*.2)},{t:'healer',c:3},{t:'swarm',c:Math.ceil(tot*.5)},{t:'split',c:Math.ceil(tot*.2)},{t:'bomber',c:Math.ceil(tot*.08)},{t:'phantom_e',c:Math.ceil(tot*.08)});
+    else if(n<=14)  q.push({t:'bomber',c:Math.ceil(tot*.12)},{t:'healer',c:3},{t:'armored',c:Math.ceil(tot*.25)},{t:'armsplit',c:Math.ceil(tot*.08)},{t:'split',c:Math.ceil(tot*.15)},{t:'fast',c:Math.ceil(tot*.15)},{t:'phantom_e',c:Math.ceil(tot*.1)});
+    else if(n===15) q.push({t:'megaboss',c:1},{t:'teleboss',c:w>=4?1:0},{t:'boss',c:w>=4?1:0},{t:'armored',c:8},{t:'armsplit',c:2},{t:'phantom_e',c:3});
+    else if(n<=17)  q.push({t:'megaboss',c:w>=5?1:0},{t:'teleboss',c:w>=4?1:0},{t:'boss',c:w>=4?1:0},{t:'armored',c:Math.ceil(tot*.25)},{t:'healer',c:3},{t:'split',c:Math.ceil(tot*.2)},{t:'phantom_e',c:Math.ceil(tot*.12)});
+    else if(n<=19)  q.push({t:'megaboss',c:w>=5?1:0},{t:'teleboss',c:w>=4?1:0},{t:'boss',c:1},{t:'armored',c:Math.ceil(tot*.25)},{t:'bomber',c:Math.ceil(tot*.15)},{t:'split',c:Math.ceil(tot*.2)},{t:'phantom_e',c:Math.ceil(tot*.12)});
+    else if(n===20) q.push({t:'megaboss',c:1},{t:'teleboss',c:1},{t:'boss',c:2},{t:'armored',c:Math.ceil(tot*.3)},{t:'healer',c:4},{t:'split',c:Math.ceil(tot*.2)},{t:'phantom_e',c:3});
+    // Levels 21-40: steady escalation
+    else if(n<=22)  q.push({t:'megaboss',c:w>=5?1:0},{t:'teleboss',c:1},{t:'boss',c:1},{t:'armored',c:Math.ceil(tot*.28)},{t:'healer',c:3},{t:'split',c:Math.ceil(tot*.2)},{t:'phantom_e',c:Math.ceil(tot*.1)});
+    else if(n<=24)  q.push({t:'megaboss',c:1},{t:'teleboss',c:1},{t:'boss',c:2},{t:'armored',c:Math.ceil(tot*.3)},{t:'healer',c:4},{t:'bomber',c:Math.ceil(tot*.12)},{t:'split',c:Math.ceil(tot*.2)},{t:'phantom_e',c:Math.ceil(tot*.12)});
+    else if(n===25) q.push({t:'megaboss',c:1},{t:'teleboss',c:1},{t:'boss',c:2},{t:'armored',c:Math.ceil(tot*.3)},{t:'healer',c:4},{t:'swarm',c:Math.ceil(tot*.3)},{t:'split',c:Math.ceil(tot*.18)},{t:'phantom_e',c:3});
+    else if(n<=27)  q.push({t:'megaboss',c:1},{t:'teleboss',c:1},{t:'boss',c:2},{t:'armored',c:Math.ceil(tot*.32)},{t:'healer',c:4},{t:'bomber',c:Math.ceil(tot*.15)},{t:'split',c:Math.ceil(tot*.22)},{t:'phantom_e',c:Math.ceil(tot*.12)});
+    else if(n<=29)  q.push({t:'megaboss',c:1},{t:'teleboss',c:2},{t:'boss',c:2},{t:'armored',c:Math.ceil(tot*.33)},{t:'healer',c:5},{t:'swarm',c:Math.ceil(tot*.3)},{t:'split',c:Math.ceil(tot*.22)},{t:'phantom_e',c:Math.ceil(tot*.13)});
+    else if(n<=32)  q.push({t:'megaboss',c:1},{t:'teleboss',c:2},{t:'boss',c:3},{t:'armored',c:Math.ceil(tot*.35)},{t:'healer',c:5},{t:'armsplit',c:Math.ceil(tot*.12)},{t:'phantom_e',c:Math.ceil(tot*.15)});
+    else if(n<=34)  q.push({t:'megaboss',c:2},{t:'teleboss',c:2},{t:'boss',c:3},{t:'armsplit',c:Math.ceil(tot*.18)},{t:'bomber',c:Math.ceil(tot*.14)},{t:'healer',c:6},{t:'phantom_e',c:Math.ceil(tot*.17)});
+    else if(n===35) q.push({t:'megaboss',c:2},{t:'teleboss',c:2},{t:'boss',c:4},{t:'armsplit',c:Math.ceil(tot*.2)},{t:'armored',c:Math.ceil(tot*.22)},{t:'healer',c:7},{t:'phantom_e',c:Math.ceil(tot*.18)});
+    else if(n<=37)  q.push({t:'megaboss',c:2},{t:'teleboss',c:3},{t:'boss',c:4},{t:'armsplit',c:Math.ceil(tot*.22)},{t:'bomber',c:Math.ceil(tot*.18)},{t:'healer',c:7},{t:'phantom_e',c:Math.ceil(tot*.2)});
+    else if(n<=39)  q.push({t:'megaboss',c:2},{t:'teleboss',c:3},{t:'boss',c:5},{t:'armsplit',c:Math.ceil(tot*.25)},{t:'bomber',c:Math.ceil(tot*.2)},{t:'healer',c:8},{t:'phantom_e',c:Math.ceil(tot*.22)});
+    else            q.push({t:'megaboss',c:3},{t:'teleboss',c:4},{t:'boss',c:6},{t:'armsplit',c:Math.ceil(tot*.3)},{t:'bomber',c:Math.ceil(tot*.25)},{t:'healer',c:10},{t:'phantom_e',c:Math.ceil(tot*.25)});
     waves.push(q.filter(x=>x.c>0));
   }
   return{n,isBoss,hm,sm,goldReward,startGold,goldDecay,waveCount,waves,seed:n*17+5,startLives:20,branching};
@@ -708,7 +722,7 @@ function startEndless(){
 // ══════════════════════════════════════
 //  SAVE & DAILY QUESTS
 // ══════════════════════════════════════
-let save={ul:1,hi:0,ts:0,stars:{},tokens:0,shopLevels:{},questProgress:{},questClaimed:{},questDate:'',unlockedTowers:{},endlessBest:0,prestigeCount:0,prestigeDmgBonus:0,failCounts:{}};
+let save={ul:1,hi:0,ts:0,stars:{},tokens:0,shopLevels:{},questProgress:{},questClaimed:{},questDate:'',unlockedTowers:{},endlessBest:0,prestigeCount:0,prestigeDmgBonus:0,failCounts:{},abilities:{}};
 try{const r=localStorage.getItem('td2_v6');if(r)save={...save,...JSON.parse(r)};}catch(e){}
 function writeSave(){try{localStorage.setItem('td2_v6',JSON.stringify(save));}catch(e){}}
 const LEVELS=Array.from({length:40},(_,i)=>mkLevel(i));
@@ -795,6 +809,7 @@ let waveStartLives=0; // lives at start of each wave
 let waveActive=false,spawnQ=[],spawnT=0,spawnTotal=0;
 let selType=null,ttTower=null,ttAX=0,ttAY=0;
 let curLv=0,gameSpeed=1,running=false,isDaily=false,isPaused=false,waveTimer=0,waveTimerMax=0;
+let abilityCDs={},surgeActive=0; // surgeActive = remaining surge seconds
 let mouseX=0,mouseY=0,shakeT=0,livesUpCount=0;
 let raf=0,lastTs=0;
 // Quest run trackers
@@ -822,6 +837,27 @@ function openShop(){
       `<div class="si-dsc">${u.desc}</div>`+
       `<div class="si-foot"><span class="si-cost">${maxed?'✓ MAX':cost+'🪙'}</span><span class="si-pips">${pips}</span></div>`;
     if(!maxed)div.onclick=()=>buyShop(u.id);
+    g.appendChild(div);
+  });
+
+  // ── ABILITIES ──
+  const abilityHeader=document.createElement('div');
+  abilityHeader.style.cssText='grid-column:1/-1;font-family:"Exo 2",sans-serif;font-size:9px;font-weight:700;color:#1a4a2a;letter-spacing:2px;padding:8px 0 4px;border-top:1px solid #0d2a18;margin-top:4px;';
+  abilityHeader.innerHTML='<span style="color:#00cc44">⚡</span> BATTLEFIELD ABILITIES — USE IN-GAME';
+  g.appendChild(abilityHeader);
+
+  ABILITIES.forEach(ab=>{
+    const owned=save.abilities[ab.id];
+    const div=document.createElement('div');div.className='si'+(owned?' maxed':'');
+    div.style.cssText=owned
+      ?`border-color:${ab.col}33;background:${ab.col}08;`
+      :`border-color:${ab.col}44;background:${ab.col}06;cursor:pointer;`;
+    div.innerHTML=
+      `<div class="si-top"><span class="si-ico">${ab.icon}</span><span class="si-nm" style="color:${ab.col}">${ab.name}</span></div>`+
+      `<div class="si-dsc">${ab.desc}</div>`+
+      `<div class="si-dsc" style="color:#556">Cooldown: ${ab.cd}s</div>`+
+      `<div class="si-foot"><span class="si-cost" style="color:${owned?'#00ff88':ab.col}">${owned?'✓ READY IN-GAME':ab.cost+'🪙 — UNLOCK'}</span></div>`;
+    if(!owned)div.onclick=()=>buyAbility(ab.id);
     g.appendChild(div);
   });
 
@@ -853,6 +889,15 @@ function openShop(){
   });
 
   document.getElementById('shop-modal').classList.add('show');
+}
+
+function buyAbility(id){
+  const ab=ABILITIES.find(a=>a.id===id);if(!ab)return;
+  if(save.abilities[id]){notify('Already owned!','#ff3d5a');return;}
+  if(save.tokens<ab.cost){notify(`Need ${ab.cost}🪙 — not enough tokens!`,'#ff3d5a');return;}
+  save.tokens-=ab.cost;save.abilities[id]=true;
+  writeSave();openShop();
+  notify(`${ab.icon} ${ab.name} unlocked!`,'#00cc44');
 }
 
 function buyTower(key){
@@ -934,6 +979,7 @@ function buildGuidePage(id){
   else if(id==='pips') buildGuidePips(page);
   else if(id==='mechanics') buildGuideMechanics(page);
   else if(id==='combos') buildGuideCombos(page);
+  else if(id==='abilities') buildGuideAbilities(page);
 }
 
 // ── Mini canvas renderer reusing game draw logic ──
@@ -1663,7 +1709,7 @@ function startLv(idx){
   gold=lv.startGold+SBONUSES.startBonus();
   lives=lv.startLives+bonusLives;
   startLives_=lives;
-  score=0;wave=0;waveActive=false;running=true;livesUpCount=0;adaptMult=1.0;waveStartLives=0;isPaused=false;waveTimer=0;waveTimerMax=0;
+  score=0;wave=0;waveActive=false;running=true;livesUpCount=0;adaptMult=1.0;waveStartLives=0;isPaused=false;waveTimer=0;waveTimerMax=0;abilityCDs={};surgeActive=0;
   if(idx!==30)endlessMode=false;
   towers=[];enemies=[];projs=[];parts=[];floats=[];
   spawnQ=[];spawnT=0;spawnTotal=0;
@@ -1672,7 +1718,7 @@ function startLv(idx){
   showScreen('s-game');
   document.getElementById('boss-bar').classList.remove('show');
   requestAnimationFrame(()=>{
-    sizeCanvas();buildPath(lv.seed);buildSidebar();updateHUD();
+    sizeCanvas();buildPath(lv.seed);buildSidebar();updateHUD();buildAbilityBar();
     document.getElementById('wavebtn').disabled=false;
     document.getElementById('wavefill').style.width='0%';
     updateWavePreview();
@@ -1964,6 +2010,10 @@ function togglePause(){if(!running)return;isPaused=!isPaused;const btn=document.
 // ══════════════════════════════════════
 function update(dt){
   if(waveActive&&spawnQ.length>0){spawnT-=dt;if(spawnT<=0){spawnEnemy(spawnQ.shift());spawnT=0.26+Math.random()*.16;}}
+  // Ability cooldown ticking
+  for(const id in abilityCDs){abilityCDs[id]=Math.max(0,abilityCDs[id]-dt/gameSpeed);}
+  if(surgeActive>0){surgeActive=Math.max(0,surgeActive-dt/gameSpeed);if(surgeActive<=0)notify('⚡ Surge ended','#ffd700');}
+  updateAbilityHUD();
   // Wave timer countdown (only between waves)
   if(!waveActive&&waveTimer>0&&wave<LEVELS[curLv].waveCount){
     waveTimer=Math.max(0,waveTimer-dt/gameSpeed);
@@ -1996,6 +2046,7 @@ function update(dt){
   for(let i=enemies.length-1;i>=0;i--){
     const en=enemies[i];if(en.dead){enemies.splice(i,1);continue;}
     if(en.burnTime>0){en.burnTime-=dt;en.hp-=en.burnDmg*dt;if(en.hp<=0){killEnemy(en);continue;}}
+    if(en.frozenT>0){en.frozenT-=dt;if(en.frozenT<=0){en.frozenVis=false;en.slow=0;}}
     if(en.heals){for(const o of enemies){if(o!==en&&!o.dead&&Math.hypot(o.x-en.x,o.y-en.y)<CELL*2.5)o.hp=Math.min(o.maxHp,o.hp+12*dt);}}
     // Boss rage: below 25% HP → speed boost + visual
     if((en.type==='boss'||en.type==='megaboss'||en.type==='teleboss')&&!en.raging&&en.hp/en.maxHp<0.25){
@@ -2034,7 +2085,7 @@ function update(dt){
   for(const tw of towers){
     if(tw.ttype!=='chrono')continue;
     const rng=tw.rng*CELL*SBONUSES.rngMult();
-    const slwAmt=0.75+(tw.upgradeLevel>=3?0.12:tw.upgradeLevel>=2?0.07:tw.upgradeLevel>=1?0.04:0);
+    const slwAmt=0.60+(tw.upgradeLevel>=3?0.12:tw.upgradeLevel>=2?0.08:tw.upgradeLevel>=1?0.04:0);
     for(const en of enemies){
       if(!en.dead&&Math.hypot(en.x-tw.x,en.y-tw.y)<=rng)
         en.slow=Math.min(0.92,Math.max(en.slow,slwAmt));
@@ -2044,7 +2095,8 @@ function update(dt){
 
   for(const tw of towers){
     if(tw.ttype==='warden'||tw.ttype==='chrono'||tw.ttype==='overwatch')continue; // passive only
-    tw.cd=Math.max(0,tw.cd-dt);if(tw.cd>0)continue;
+    const surgeRteMult=surgeActive>0?2:1;
+    tw.cd=Math.max(0,tw.cd-dt*surgeRteMult);if(tw.cd>0)continue;
     const tgt=getTarget(tw);if(!tgt)continue;
     tw.cd=1/(tw.rte*SBONUSES.rteMult());
     tw.aimA=Math.atan2(tgt.y-tw.y,tgt.x-tw.x);
@@ -2085,7 +2137,8 @@ function update(dt){
     const upgLv=tw.upgradeLevel||0;
     tw.owCD=8-upgLv;
     // Flash notification
-    notify('🎯 OVERWATCH — ALL TOWERS FIRE!','#ff4466');
+    const _wasCloak=best.cloaked;if(_wasCloak){best.cloaked=false;floats.push({x:best.x,y:best.y-best.sz-24,txt:'👁 DETECTED',col:'#ff4466',life:1.2,sz:10});}
+notify('🎯 OVERWATCH — TARGET ACQUIRED!','#ff4466');
     floats.push({x:best.x,y:best.y-best.sz-14,txt:'🎯 LOCKED',col:'#ff4466',life:1.4,sz:13});
     // Volley: every attack tower fires at the marked enemy immediately
     for(const atk of towers){
@@ -2182,7 +2235,7 @@ function getTarget(tw){
   let best=null,bestVal=tw.priority==='last'?Infinity:tw.priority==='weak'?Infinity:-1;
   for(const en of enemies){
     if(en.dead)continue;
-    if(en.cloaked)continue; // Wraith — invisible to towers
+    if(en.cloaked&&!en.marked)continue; // Wraith — invisible unless marked by Overwatch
     const d=Math.hypot(en.x-tw.x,en.y-tw.y);if(d>rng)continue;
     const path=(en.pathB&&PATH2.length)?PATH2:PATH;
     const v=tw.priority==='first'?en.pathIdx:tw.priority==='last'?en.pathIdx:tw.priority==='strong'?en.hp:en.hp;
@@ -2200,7 +2253,7 @@ function wardenMult(tw){
     if(w.ttype!=='warden')continue;
     const rng=w.rng*CELL*SBONUSES.rngMult();
     if(Math.hypot(tw.x-w.x,tw.y-w.y)<=rng){
-      const bonus=[0,.25,.35,.45,.50][w.upgradeLevel]||.25;
+      const bonus=[0,.20,.28,.35,.40][w.upgradeLevel]||.20;
       return 1+bonus;
     }
   }
@@ -2244,7 +2297,7 @@ function firePierce(tw,tgt){
   let hitCount=0;
   for(const en of enemies){
     if(en.dead)continue;
-    if(en.cloaked)continue;
+    if(en.cloaked&&!en.marked)continue;
     // Point-to-line distance check
     const t=Math.max(0,Math.min(len,(en.x-ax)*ux+(en.y-ay)*uy));
     const px=ax+ux*t,py=ay+uy*t;
@@ -2270,7 +2323,7 @@ function doImpact(p,hx,hy){
   const r=Math.max(p.splR,2);
   for(const en of enemies){
     if(en.dead)continue;
-    if(en.cloaked)continue;
+    if(en.cloaked&&!en.marked)continue;
     if(Math.hypot(en.x-hx,en.y-hy)<=r){
       let dmg=p.dmg;if(en.armor&&!p.pierce)dmg*=(1-en.armor);
       en.hp-=dmg;
@@ -2303,7 +2356,7 @@ function spawnEnemy(type){
 function killEnemy(en){
   if(en.dead)return;en.dead=true;
   const lvDecay=LEVELS[curLv].goldDecay;
-  const rwd=Math.ceil(en.ed.rwd*(1+curLv*.03)*lvDecay*SBONUSES.goldMult());
+  const rwd=Math.ceil(en.ed.rwd*(1+curLv*.015)*0.6*lvDecay*SBONUSES.goldMult());
   gold+=rwd;score+=rwd*5;updateHUD();
   for(let i=0;i<10;i++){const a=Math.random()*Math.PI*2,s=40+Math.random()*80;parts.push({x:en.x,y:en.y,vx:Math.cos(a)*s,vy:Math.sin(a)*s-50,col:en.col,life:.6+Math.random()*.4,sz:2+Math.random()*en.sz*.35});}
   floats.push({x:en.x,y:en.y-en.sz-8,txt:'+'+rwd+'💰',col:'#ffd700',life:1,sz:11});
@@ -3036,6 +3089,41 @@ function skipLevel(i){
   writeSave();buildMap();
 }
 
+
+function buildGuideAbilities(page){
+  page.innerHTML=`
+    <div style="padding:12px 4px 4px;font-family:'Bangers',sans-serif;">
+      <div style="color:#00cc44;font-size:11px;letter-spacing:2px;margin-bottom:4px;">BATTLEFIELD ABILITIES</div>
+      <div style="color:#4a6a5a;font-size:9px;margin-bottom:12px;font-family:'Exo 2',sans-serif;">Purchase in the Gear Shop · Active during levels</div>
+      <div id="ability-guide-cards" style="display:flex;flex-direction:column;gap:8px;"></div>
+      <div style="margin-top:14px;padding:10px;background:#080c18;border:1px solid #1a2a1a;border-radius:7px;">
+        <div style="color:#ff4466;font-size:.8rem;font-family:'Bangers';letter-spacing:1px;margin-bottom:6px;">👁 OVERWATCH — SPECIAL ABILITY</div>
+        <div style="color:#6a8a7a;font-size:.75rem;font-family:'Exo 2',sans-serif;line-height:1.5;">
+          The Overwatch tower can <b style="color:#ff4466">detect and reveal cloaked Wraiths</b>. When Overwatch locks on to a target, it strips its invisibility — exposing it to all towers for the duration of the mark. Place Overwatch near high-traffic zones to counter Wraith-heavy waves.
+        </div>
+      </div>
+    </div>`;
+  const container=page.querySelector('#ability-guide-cards');
+  ABILITIES.forEach(ab=>{
+    const owned=save.abilities[ab.id];
+    const card=document.createElement('div');
+    card.style.cssText=`background:#080c1c;border:1px solid ${ab.col}44;border-left:3px solid ${ab.col};border-radius:7px;padding:10px 12px;`;
+    card.innerHTML=`
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:4px;">
+        <span style="font-size:1.4rem">${ab.icon}</span>
+        <div style="flex:1">
+          <div style="color:${ab.col};font-family:'Bangers';font-size:1rem;letter-spacing:.5px">${ab.name}${owned?' <span style=\'color:#00ff88;font-size:.7rem\'>✓ OWNED</span>':''}</div>
+          <div style="color:#6a7a9a;font-size:.74rem;font-family:'Exo 2',sans-serif;">${ab.desc}</div>
+        </div>
+        <div style="text-align:right">
+          <div style="color:#ffd700;font-family:'Bangers';font-size:.85rem;">${ab.cost}🪙</div>
+          <div style="color:#445;font-size:.7rem;">CD: ${ab.cd}s</div>
+        </div>
+      </div>`;
+    container.appendChild(card);
+  });
+}
+
 function buildGuideCombos(page){
   const towerName=k=>TDEFS[k]?TDEFS[k].name:k;
   const towerIcon=k=>TDEFS[k]?TDEFS[k].icon:'🗼';
@@ -3067,6 +3155,77 @@ function buildGuideCombos(page){
     container.appendChild(card);
   });
 }
+
+// ══════════════════════════════════════
+//  ABILITIES
+// ══════════════════════════════════════
+function useAbility(id){
+  if(!running||isPaused)return;
+  if(!save.abilities[id]){notify('Not purchased!','#ff3d5a');return;}
+  if(abilityCDs[id]>0){notify(`⏳ ${Math.ceil(abilityCDs[id])}s cooldown`,'#ff8c00');return;}
+  const ab=ABILITIES.find(a=>a.id===id);
+  abilityCDs[id]=ab.cd;
+  if(id==='freeze'){
+    enemies.forEach(e=>{if(!e.dead){e.slow=0.98;e.frozenVis=true;e.frozenT=3.0;}});
+    notify('❄️ DEEP FREEZE!','#44ddff');
+    parts.push(...Array.from({length:30},()=>{const a=Math.random()*Math.PI*2,r=Math.random()*200;return{x:CANVAS.width/2+Math.cos(a)*r,y:CANVAS.height/2+Math.sin(a)*r,vx:Math.cos(a)*40,vy:Math.sin(a)*40,life:1.2,col:'#44ddff',sz:4};}));
+  } else if(id==='missile'){
+    const tgt=enemies.filter(e=>!e.dead).sort((a,b)=>b.pathIdx-a.pathIdx)[0];
+    if(!tgt){notify('No targets!','#888');abilityCDs[id]=0;return;}
+    // Big AoE explosion at target
+    const splR=CELL*4;
+    enemies.forEach(e=>{if(!e.dead&&Math.hypot(e.x-tgt.x,e.y-tgt.y)<=splR){const dmg=1800*(1+(save.prestigeDmgBonus||0));e.hp-=dmg;if(e.hp<=0)killEnemy(e);}});
+    parts.push(...Array.from({length:60},()=>{const a=Math.random()*Math.PI*2,spd=60+Math.random()*120;return{x:tgt.x,y:tgt.y,vx:Math.cos(a)*spd,vy:Math.sin(a)*spd,life:1.5,col:Math.random()<.5?'#ff8800':'#ff4400',sz:5+Math.random()*6};}));
+    floats.push({x:tgt.x,y:tgt.y-20,txt:'💥 GIANT MISSILE',col:'#ff8800',life:2,sz:14});
+    notify('🚀 GIANT MISSILE!','#ff8800');
+  } else if(id==='surge'){
+    surgeActive=5.0;
+    notify('⚡ POWER SURGE — 2× fire rate!','#ffd700');
+  } else if(id==='airstrike'){
+    // Bomb every 3rd path tile
+    let hits=0;
+    for(let pi=0;pi<PATH.length;pi+=2){
+      const[pr,pc]=PATH[pi];
+      const bx=pc*CELL+CELL/2,by=pr*CELL+CELL/2;
+      const splR=CELL*1.8;
+      enemies.forEach(e=>{if(!e.dead&&Math.hypot(e.x-bx,e.y-by)<=splR){const dmg=900*(1+(save.prestigeDmgBonus||0));e.hp-=dmg;if(e.hp<=0){killEnemy(e);hits++;}}});
+      parts.push(...Array.from({length:12},()=>{const a=Math.random()*Math.PI*2,spd=40+Math.random()*60;return{x:bx,y:by,vx:Math.cos(a)*spd,vy:Math.sin(a)*spd,life:1,col:'#ff4422',sz:3+Math.random()*4};}));
+    }
+    notify(`💣 AIRSTRIKE! ${hits} kills`,'#ff4422');
+  }
+  updateAbilityHUD();
+}
+
+function updateAbilityHUD(){
+  const wrap=document.getElementById('ability-bar');if(!wrap)return;
+  ABILITIES.forEach(ab=>{
+    if(!save.abilities[ab.id])return;
+    const btn=document.getElementById('ab-'+ab.id);if(!btn)return;
+    const cd=abilityCDs[ab.id]||0;
+    const surge=ab.id==='surge'&&surgeActive>0;
+    btn.style.opacity=cd>0?'0.5':'1';
+    btn.style.boxShadow=surge?`0 0 12px ${ab.col}`:cd>0?'none':`0 0 6px ${ab.col}88`;
+    const lbl=btn.querySelector('.ab-cd');
+    if(lbl)lbl.textContent=cd>0?Math.ceil(cd)+'s':surge?Math.ceil(surgeActive)+'s active':'READY';
+  });
+}
+
+function buildAbilityBar(){
+  const wrap=document.getElementById('ability-bar');if(!wrap)return;
+  wrap.innerHTML='';
+  const owned=ABILITIES.filter(ab=>save.abilities[ab.id]);
+  if(!owned.length){wrap.style.display='none';return;}
+  wrap.style.display='flex';
+  owned.forEach(ab=>{
+    const btn=document.createElement('button');
+    btn.id='ab-'+ab.id;btn.className='ability-btn';
+    btn.style.cssText=`border:1px solid ${ab.col}88;color:${ab.col};background:rgba(0,0,0,.7);`;
+    btn.innerHTML=`<span style="font-size:1.1rem">${ab.icon}</span><span class="ab-name">${ab.name}</span><span class="ab-cd">READY</span>`;
+    btn.onclick=()=>useAbility(ab.id);
+    wrap.appendChild(btn);
+  });
+}
+
 
 checkQuestReset();
 buildMap();
