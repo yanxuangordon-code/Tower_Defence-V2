@@ -121,6 +121,8 @@ html,body{width:100%;height:100%;overflow:hidden;background:#06090f;font-family:
 .hv b{color:#f0f4d8;font-size:12px;}
 .hv.warn b{color:#ff3d5a;}
 @keyframes lifePulse{0%,100%{transform:scale(1)}50%{transform:scale(1.25)}}
+@keyframes msBadgePulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.6;transform:scale(1.15)}}
+@keyframes milePulse{0%,100%{opacity:1}50%{opacity:.6}}
 .hv.warn{animation:lifePulse .25s ease;}
 .hdiv{width:1px;height:16px;background:#1a2550;flex-shrink:0;}
 #hud-spd{display:flex;gap:3px;flex-shrink:0;}
@@ -129,10 +131,13 @@ html,body{width:100%;height:100%;overflow:hidden;background:#06090f;font-family:
 #hud-right{display:flex;gap:5px;margin-left:auto;align-items:center;flex-shrink:0;}
 .hudbtn{padding:5px 11px;border:none;font-family:'Bangers',sans-serif;font-size:10px;font-weight:700;cursor:pointer;border-radius:4px;letter-spacing:2px;white-space:nowrap;transition:.13s;}
 #wavebtn{background:linear-gradient(135deg,#00aaff,#0055bb);color:#fff;}
-.ability-btn{display:flex;flex-direction:column;align-items:center;gap:1px;padding:3px 7px;border-radius:6px;cursor:pointer;font-family:'Bangers',sans-serif;min-width:52px;transition:.15s;}
-.ability-btn:hover{filter:brightness(1.3);}
-.ab-name{font-size:7px;letter-spacing:.5px;white-space:nowrap;}
-.ab-cd{font-size:7px;color:#aaa;white-space:nowrap;}
+.ability-btn{display:flex;flex-direction:row;align-items:center;gap:6px;padding:5px 12px;border-radius:7px;cursor:pointer;font-family:'Bangers',sans-serif;white-space:nowrap;transition:.15s;font-size:11px;letter-spacing:.5px;}
+.ability-btn:hover{filter:brightness(1.25);}
+.ab-icon-wrap{position:relative;width:26px;height:26px;flex-shrink:0;}
+.ab-icon-wrap canvas{position:absolute;top:0;left:0;pointer-events:none;}
+.ab-icon-emoji{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);font-size:1.1rem;line-height:1;}
+.ab-name{font-size:10px;letter-spacing:.5px;}
+.ab-cd{font-size:9px;padding-left:5px;border-left:1px solid #333;}
 #wavebtn:hover:not([disabled]){filter:brightness(1.3);}
 #wavebtn[disabled]{opacity:.28;cursor:default;}
 #livebtn{background:rgba(0,255,136,.1);border:1px solid #00ff88;color:#00ff88;font-size:9px;padding:4px 8px;}
@@ -336,6 +341,8 @@ html,body{width:100%;height:100%;overflow:hidden;background:#06090f;font-family:
     <div class="map-btns">
       <button class="map-btn btn-shop" onclick="openShop()">🪙 GEAR SHOP</button>
       <button class="map-btn btn-quests" id="quests-btn" onclick="openQuests()">📋 MISSIONS <span class="qbadge" id="qbadge" style="display:none">!</span></button>
+      <button class="map-btn" onclick="openMilestones()" style="background:rgba(255,215,0,.08);border-color:rgba(255,215,0,.3);color:#ffd700;">🏅 MILESTONES <span id="milestone-badge" style="display:none;background:#ffd700;color:#000;border-radius:4px;padding:0 5px;font-size:9px;margin-left:4px;animation:msBadgePulse 1.2s ease-in-out infinite;"></span></button>
+      <button class="map-btn" onclick="openChallenges()" style="background:rgba(255,140,0,.08);border-color:rgba(255,140,0,.3);color:#ff8c00;">⚔️ CHALLENGES <span id="ch-map-badge" style="display:none;font-size:9px;background:rgba(255,140,0,.2);border:1px solid #ff8c00;border-radius:4px;padding:0 5px;margin-left:3px;"></span></button>
       <button class="map-btn btn-guide" onclick="openGuide()">📖 FIELD GUIDE</button>
     </div>
   </div>
@@ -426,6 +433,7 @@ html,body{width:100%;height:100%;overflow:hidden;background:#06090f;font-family:
   <div id="g-main">
     <div id="hud">
       <span id="hud-title">TD2</span>
+      <div id="hud-streak" style="display:none;font-family:'Bangers';font-size:10px;color:#ff8c00;letter-spacing:1px;flex-shrink:0;padding:1px 6px;background:rgba(255,140,0,.12);border:1px solid rgba(255,140,0,.3);border-radius:4px;white-space:nowrap;"></div>
       <div class="hdiv"></div>
       <div class="hv">Lv <b id="h-lv">1</b></div>
       <div class="hdiv"></div>
@@ -442,14 +450,18 @@ html,body{width:100%;height:100%;overflow:hidden;background:#06090f;font-family:
         <button class="spdbtn" onclick="setSpd(3)">3×</button>
       </div>
       <div id="hud-right">
-        <div id="ability-bar" style="display:none;gap:4px;align-items:center;"></div>
-        <button class="hudbtn" id="livebtn" onclick="buyLife()">+❤️ 60💰</button>
+          <button class="hudbtn" id="livebtn" onclick="buyLife()">+❤️ 60💰</button>
         <button class="hudbtn" id="backbtn" onclick="goMap()">◀ MAP</button>
         <button class="hudbtn" id="wavebtn" onclick="sendWave()">▶ SEND WAVE</button>
       </div>
       <div id="waveprog"><div id="wavefill"></div></div>
     </div>
-    <div id="boss-bar"><div id="bb-icon">💀</div><div id="bb-label">BOSS</div><div id="bb-track"><div id="bb-fill" style="width:100%"></div></div><div id="bb-pct">100%</div></div>
+    <div id="ability-strip" style="display:none;position:absolute;top:50px;left:0;right:152px;z-index:19;background:rgba(4,8,22,.95);border-bottom:1px solid #1a2a1a;padding:4px 10px;flex-direction:row;gap:6px;align-items:center;flex-wrap:wrap;"><span style="font-family:'Bangers';font-size:9px;color:#2a4a2a;letter-spacing:2px;flex-shrink:0;">ABILITIES</span><div id="ability-bar" style="display:flex;gap:5px;align-items:center;flex-wrap:wrap;"></div></div>
+<div id="challenge-banner" style="display:none;position:absolute;top:50px;left:0;right:152px;z-index:18;background:rgba(20,8,0,.97);border-bottom:2px solid #ff8c00;padding:3px 12px;align-items:center;gap:8px;"><span id="ch-banner-icon" style="font-size:1rem"></span><span id="ch-banner-name" style="font-family:'Bangers';color:#ff8c00;font-size:.85rem;letter-spacing:1px"></span><span id="ch-banner-rule" style="color:#aa6600;font-size:.72rem;font-family:'Exo 2',sans-serif;"></span><span id="ch-banner-timer" style="margin-left:auto;font-family:'Bangers';color:#ffaa00;font-size:.85rem;"></span></div>
+<div id="challenge-banner" style="display:none;position:absolute;top:50px;left:0;right:0;z-index:18;background:linear-gradient(90deg,rgba(255,140,0,.12),rgba(255,80,0,.08),rgba(255,140,0,.12));border-bottom:1px solid rgba(255,120,0,.3);padding:3px 12px;font-family:'Bangers';font-size:11px;letter-spacing:2px;color:#ff8c00;text-align:center;pointer-events:none;">
+  ⚔️ CHALLENGE: <span id="ch-banner-txt"></span>
+</div>
+<div id="boss-bar"><div id="bb-icon">💀</div><div id="bb-label">BOSS</div><div id="bb-track"><div id="bb-fill" style="width:100%"></div></div><div id="bb-pct">100%</div></div>
     <canvas id="game-canvas"></canvas>
   </div>
   <div id="g-side">
@@ -480,6 +492,7 @@ html,body{width:100%;height:100%;overflow:hidden;background:#06090f;font-family:
   <div class="tt-max" id="tt-max" style="display:none">✓ MAX LEVEL</div>
   <button id="tt-upbtn" onclick="ttUpgrade()">⬆ UPGRADE</button>
   <button id="tt-sellbtn" onclick="ttSell()">💸 SELL</button>
+  <button id="tt-lockbtn" onclick="ttToggleLock()" style="width:100%;padding:4px;font-size:9px;cursor:pointer;border-radius:3px;font-family:'Oswald',sans-serif;font-weight:600;letter-spacing:1px;transition:.12s;display:block;margin-top:3px;background:rgba(100,100,255,.1);border:1px solid #4444aa;color:#8888ff;">🔓 LOCK AIM</button>
   <button id="tt-close" onclick="ttClose()">✕ CLOSE</button>
 </div>
 
@@ -597,11 +610,73 @@ const TUPG={
 // ══════════════════════════════════════
 //  TOKEN SHOP — higher costs, meaningful upgrades
 // ══════════════════════════════════════
+const MILESTONES=[
+  {id:'kills_50',   icon:'💀', name:'First Blood',     desc:'Kill 50 enemies total',        goal:50,   stat:'totalKills', reward:3},
+  {id:'kills_500',  icon:'☠️', name:'Exterminator',    desc:'Kill 500 enemies total',       goal:500,  stat:'totalKills', reward:8},
+  {id:'kills_2000', icon:'🔱', name:'Annihilator',     desc:'Kill 2000 enemies total',      goal:2000, stat:'totalKills', reward:20},
+  {id:'waves_10',   icon:'🌊', name:'Wave Rider',      desc:'Survive 10 waves total',       goal:10,   stat:'totalWaves', reward:3},
+  {id:'waves_50',   icon:'🌀', name:'Storm Chaser',    desc:'Survive 50 waves total',       goal:50,   stat:'totalWaves', reward:10},
+  {id:'waves_200',  icon:'⚡', name:'Unstoppable',     desc:'Survive 200 waves total',      goal:200,  stat:'totalWaves', reward:25},
+  {id:'upgrades_10',icon:'⬆', name:'Tinkerer',        desc:'Upgrade towers 10 times',      goal:10,   stat:'totalUpgrades',reward:4},
+  {id:'upgrades_50',icon:'🔧', name:'Engineer',        desc:'Upgrade towers 50 times',      goal:50,   stat:'totalUpgrades',reward:12},
+  {id:'levels_5',   icon:'🏆', name:'Campaigner',      desc:'Complete 5 levels',            goal:5,    stat:'totalLevels', reward:5},
+  {id:'levels_20',  icon:'👑', name:'Veteran',         desc:'Complete 20 levels',           goal:20,   stat:'totalLevels', reward:15},
+  {id:'gold_1000',  icon:'💰', name:'War Fund',        desc:'Earn 1000 gold in one level',  goal:1000, stat:'bestGold',    reward:6},
+  {id:'sell_10',    icon:'💸', name:'Arms Dealer',     desc:'Sell 10 towers total',         goal:10,   stat:'totalSells',  reward:5},
+  {id:'kills_10000',icon:'💥', name:'Apocalypse',      desc:'Kill 10,000 enemies total',     goal:10000,stat:'totalKills', reward:40},
+  {id:'boss_10',    icon:'👹', name:'Boss Slayer',      desc:'Kill 10 bosses total',          goal:10,   stat:'totalBosses', reward:10},
+  {id:'boss_50',    icon:'🔱', name:'Overlord Bane',   desc:'Kill 50 bosses total',          goal:50,   stat:'totalBosses', reward:30},
+  {id:'endless_10', icon:'♾️', name:'Into the Void',   desc:'Reach wave 10 in Endless',      goal:10,   stat:'bestEndless',  reward:8},
+  {id:'endless_30', icon:'🌌', name:'Eternal Soldier', desc:'Reach wave 30 in Endless',      goal:30,   stat:'bestEndless',  reward:20},
+  {id:'prestige_1', icon:'✨', name:'Reborn',           desc:'Prestige for the first time',   goal:1,    stat:'totalPrestige',reward:15},
+  {id:'levels_40',  icon:'🎖️', name:'Campaign Master', desc:'Complete all 40 levels',        goal:40,   stat:'totalLevels',  reward:35},
+  {id:'ability_use',icon:'⚡', name:'Tactician',        desc:'Use abilities 25 times',        goal:25,   stat:'totalAbilities',reward:8},
+];
+
 const ABILITIES=[
   {id:'freeze',  icon:'❄️', name:'Deep Freeze',   desc:'Freezes ALL enemies solid for 3 seconds.',         cd:45,  cost:18, col:'#44ddff'},
   {id:'missile', icon:'🚀', name:'Giant Missile',  desc:'Massive rocket hits the furthest enemy — huge AoE.', cd:30, cost:14, col:'#ff8800'},
   {id:'surge',   icon:'⚡', name:'Power Surge',    desc:'All towers fire at 2× speed for 5 seconds.',       cd:60,  cost:22, col:'#ffd700'},
   {id:'airstrike',icon:'💣',name:'Airstrike',      desc:'Carpet bombs every tile on the path.',              cd:50,  cost:20, col:'#ff4422'},
+];
+
+
+// ══════════════════════════════════════
+//  TOWER CHALLENGES
+// ══════════════════════════════════════
+const CHALLENGES=[
+  // ─── SOLO TOWER RUNS ───
+  {id:'c1',  cat:'solo', name:'Frost Protocol',    icon:'❄️',  req:['frost'],    reqName:'Frost only',         unlockAt:3,  reward:6,  lv:3,  desc:'Beat level 3 using ONLY Frost towers.'},
+  {id:'c2',  cat:'solo', name:'Snipers Nest',      icon:'🎯',  req:['sniper'],   reqName:'Snipers only',       unlockAt:7,  reward:10, lv:7,  desc:'Beat level 7 using ONLY Sniper towers.'},
+  {id:'c3',  cat:'solo', name:'Inferno Gauntlet',  icon:'🔥',  req:['inferno'],  reqName:'Inferno only',       unlockAt:12, reward:14, lv:12, desc:'Beat level 12 using ONLY Inferno towers.'},
+  {id:'c4',  cat:'solo', name:'Shock Doctrine',    icon:'🌩',  req:['tesla'],    reqName:'Tesla only',         unlockAt:10, reward:12, lv:9,  desc:'Beat level 9 with Tesla towers only.'},
+  {id:'c5',  cat:'solo', name:'Void Rift',         icon:'🌀',  req:['void'],     reqName:'Void only',          unlockAt:16, reward:18, lv:15, desc:'Beat level 15 with nothing but Void towers.'},
+  {id:'c6',  cat:'solo', name:'Laser Precision',   icon:'⚡',  req:['laser'],    reqName:'Laser only',         unlockAt:5,  reward:8,  lv:5,  desc:'Beat level 5 with Laser towers only.'},
+  {id:'c7',  cat:'solo', name:'Iron Barrage',      icon:'💣',  req:['cannon'],   reqName:'Cannon only',        unlockAt:4,  reward:7,  lv:4,  desc:'Cannon towers only — level 4.'},
+  {id:'c8',  cat:'solo', name:'Missile Command',   icon:'🚀',  req:['missile'],  reqName:'Missile only',       unlockAt:8,  reward:11, lv:8,  desc:'Beat level 8 with Missile towers only.'},
+  // ─── COMBO RUNS ───
+  {id:'c9',  cat:'combo', name:'Ordnance Drop',    icon:'💥',  req:['cannon','missile'],  reqName:'Cannon + Missile',  unlockAt:10, reward:12, lv:10, desc:'Carpet Bomb synergy run — Cannon and Missile only.'},
+  {id:'c10', cat:'combo', name:'Cold Snap',        icon:'🧊',  req:['frost','laser'],     reqName:'Frost + Laser',     unlockAt:10, reward:12, lv:10, desc:'Cryo-Beam run — Frost and Laser only.'},
+  {id:'c11', cat:'combo', name:'Arc Storm',        icon:'🔮',  req:['tesla','frost'],     reqName:'Tesla + Frost',     unlockAt:12, reward:14, lv:12, desc:'Superconductor synergy — Tesla and Frost only.'},
+  {id:'c12', cat:'combo', name:'Dark Flame',       icon:'🌑',  req:['inferno','void'],    reqName:'Inferno + Void',    unlockAt:16, reward:18, lv:14, desc:'Harness the Dark Flame synergy — Inferno and Void only.'},
+  {id:'c13', cat:'combo', name:'Ghost Protocol',   icon:'👻',  req:['phantom','sniper'],  reqName:'Phantom + Sniper',  unlockAt:18, reward:20, lv:16, desc:'Ghost Round combo — Phantom and Sniper only. Token towers required.'},
+  {id:'c28', cat:'combo', name:'War Machine',      icon:'⚙️',  req:['warden','missile'],  reqName:'Warden + Missile',  unlockAt:20, reward:22, lv:18, desc:'Activate the War Machine synergy — Warden and Missile only.'},
+  // ─── RESTRICTION RUNS ───
+  {id:'c14', cat:'restrict', name:'No Refunds',    icon:'🪙',  req:null, noSell:true,      reqName:'No selling',        unlockAt:6,  reward:10, lv:6,  desc:'Complete a level without selling a single tower.'},
+  {id:'c15', cat:'restrict', name:'Minimalist',    icon:'🔲',  req:null, maxTowers:4,      reqName:'Max 4 towers',      unlockAt:8,  reward:14, lv:10, desc:'Win with a maximum of 4 towers placed at any time.'},
+  {id:'c16', cat:'restrict', name:'War Economy',   icon:'💸',  req:null, maxGold:600,      reqName:'Spend max 600g',    unlockAt:10, reward:15, lv:8,  desc:'Win while spending no more than 600 total gold.'},
+  {id:'c17', cat:'restrict', name:'Old School',    icon:'🗡️',  req:null, noAbilities:true, reqName:'No abilities',      unlockAt:8,  reward:12, lv:8,  desc:'Beat a level without using any battlefield abilities.'},
+  {id:'c25', cat:'restrict', name:'Raw Power',     icon:'⚒️',  req:null, noUpgrade:true,   reqName:'No upgrades',       unlockAt:12, reward:16, lv:10, desc:'Win without upgrading any tower — base stats only.'},
+  {id:'c26', cat:'restrict', name:'Tower Tax',     icon:'🏛️',  req:null, maxTowers:6, noSell:true, reqName:'Max 6 towers, no sell', unlockAt:15, reward:18, lv:12, desc:'Max 6 towers, no selling — make every placement count.'},
+  {id:'c27', cat:'restrict', name:'Penny Pincher', icon:'🤏',  req:null, maxGold:400,      reqName:'Spend max 400g',    unlockAt:15, reward:20, lv:8,  desc:'Win spending under 400 gold total. Ultra-efficiency required.'},
+  // ─── SURVIVAL RUNS ───
+  {id:'c18', cat:'survive', name:'Flawless',       icon:'💎',  req:null, noLivesLost:true, reqName:'Lose 0 lives',      unlockAt:5,  reward:15, lv:6,  desc:'Complete a level without letting a single enemy through.'},
+  {id:'c19', cat:'survive', name:'Boss Rush',      icon:'💀',  req:null, bossOnly:true,    reqName:'Full lives on bosses', unlockAt:12, reward:18, lv:10, desc:'Beat a boss-heavy level with full lives at every boss wave.'},
+  {id:'c20', cat:'survive', name:'Endless Crucible',icon:'♾️', req:null, endlessGoal:15,  reqName:'Reach wave 15 Endless', unlockAt:20, reward:22, lv:41, desc:'Survive 15 consecutive waves in Endless mode.'},
+  {id:'c21', cat:'survive', name:'Speed Blitz',    icon:'⏱️',  req:null, speedRun:240,     reqName:'Beat in 4 minutes',  unlockAt:8,  reward:16, lv:7,  desc:'Complete level 7 in under 4 minutes. Send waves early!'},
+  {id:'c22', cat:'survive', name:'Lightning Run',  icon:'⚡',  req:null, speedRun:180,     reqName:'Beat in 3 minutes',  unlockAt:18, reward:22, lv:10, desc:'Finish level 10 in under 3 minutes. Maximum aggression.'},
+  {id:'c23', cat:'survive', name:'Iron Man',       icon:'🛡️',  req:null, noLivesLost:true, noSell:true, reqName:'Flawless + no selling', unlockAt:22, reward:30, lv:15, desc:'The ultimate test: no lives lost, no selling, on level 15.'},
+  {id:'c24', cat:'survive', name:'Swarm Control',  icon:'🪲',  req:null, noLivesLost:true, reqName:'Flawless vs swarms', unlockAt:14, reward:18, lv:13, desc:'The swarm levels — complete flawlessly.'},
 ];
 
 const SHOP_UPGRADES=[
@@ -722,9 +797,93 @@ function startEndless(){
 // ══════════════════════════════════════
 //  SAVE & DAILY QUESTS
 // ══════════════════════════════════════
-let save={ul:1,hi:0,ts:0,stars:{},tokens:0,shopLevels:{},questProgress:{},questClaimed:{},questDate:'',unlockedTowers:{},endlessBest:0,prestigeCount:0,prestigeDmgBonus:0,failCounts:{},abilities:{}};
+let save={ul:1,hi:0,ts:0,stars:{},tokens:0,shopLevels:{},questProgress:{},questClaimed:{},questDate:'',unlockedTowers:{},endlessBest:0,prestigeCount:0,prestigeDmgBonus:0,failCounts:{},abilities:{},milestonesClaimed:{},challengesDone:{}};
 try{const r=localStorage.getItem('td2_v6');if(r)save={...save,...JSON.parse(r)};}catch(e){}
 function writeSave(){try{localStorage.setItem('td2_v6',JSON.stringify(save));}catch(e){}}
+function mStat(key,val=1){
+  if(!save.mstats)save.mstats={};
+  save.mstats[key]=(save.mstats[key]||0)+val;
+  checkMilestones();
+}
+function checkMilestones(){
+  if(!save.mstats)return;
+  let anyReady=false;
+  MILESTONES.forEach(m=>{
+    if(save.milestonesClaimed[m.id])return;
+    const v=save.mstats[m.stat]||0;
+    if(v>=m.goal)anyReady=true;
+  });
+  const badge=document.getElementById('milestone-badge');
+  if(badge)badge.style.display=anyReady?'':'none';
+}
+function claimMilestone(id){
+  const m=MILESTONES.find(x=>x.id===id);if(!m)return;
+  if(save.milestonesClaimed[id])return;
+  save.milestonesClaimed[id]=true;
+  save.tokens=(save.tokens||0)+m.reward;
+  writeSave();
+  notify(`🏅 ${m.name}! +${m.reward}🪙`,'#ffd700');
+  checkMilestones();
+  if(document.getElementById('milestone-modal').classList.contains('show'))openMilestones();
+  // Update token display on map
+  const tokEl=document.getElementById('ms-tok');if(tokEl)tokEl.textContent=save.tokens;
+}
+function openMilestones(){
+  const modal=document.getElementById('milestone-modal');
+  if(!modal)return;
+  const list=document.getElementById('milestone-list');list.innerHTML='';
+  if(!save.mstats)save.mstats={};
+  const claimed_total=MILESTONES.filter(m=>save.milestonesClaimed[m.id]).length;
+  const claimable=MILESTONES.filter(m=>!save.milestonesClaimed[m.id]&&(save.mstats[m.stat]||0)>=m.goal).length;
+  // Header summary
+  const summary=document.createElement('div');
+  summary.style.cssText='display:flex;gap:12px;margin-bottom:10px;flex-wrap:wrap;';
+  summary.innerHTML=`
+    <div style="flex:1;background:rgba(255,215,0,.06);border:1px solid rgba(255,215,0,.15);border-radius:8px;padding:8px 12px;text-align:center">
+      <div style="font-family:'Bangers';color:#ffd700;font-size:1.1rem">${claimed_total}/${MILESTONES.length}</div>
+      <div style="color:#556;font-size:.68rem">CLAIMED</div>
+    </div>
+    <div style="flex:1;background:rgba(0,220,80,.06);border:1px solid rgba(0,220,80,${claimable?'.4':'.1'});border-radius:8px;padding:8px 12px;text-align:center${claimable?';animation:milePulse 1.5s infinite':''}">
+      <div style="font-family:'Bangers';color:${claimable?'#00ff88':'#334'};font-size:1.1rem">${claimable}</div>
+      <div style="color:#556;font-size:.68rem">READY TO CLAIM</div>
+    </div>
+    <div style="flex:1;background:rgba(255,140,0,.06);border:1px solid rgba(255,140,0,.15);border-radius:8px;padding:8px 12px;text-align:center">
+      <div style="font-family:'Bangers';color:#ff8c00;font-size:1.1rem">${MILESTONES.reduce((s,m)=>s+(save.milestonesClaimed[m.id]?m.reward:0),0)}🪙</div>
+      <div style="color:#556;font-size:.68rem">TOKENS EARNED</div>
+    </div>`;
+  list.appendChild(summary);
+  // Sort: claimable first, then in-progress, then claimed
+  const sorted=[...MILESTONES].sort((a,b)=>{
+    const av=(save.mstats[a.stat]||0)>=a.goal&&!save.milestonesClaimed[a.id]?0:save.milestonesClaimed[a.id]?2:1;
+    const bv=(save.mstats[b.stat]||0)>=b.goal&&!save.milestonesClaimed[b.id]?0:save.milestonesClaimed[b.id]?2:1;
+    return av-bv;
+  });
+  sorted.forEach(m=>{
+    const v=save.mstats[m.stat]||0;
+    const claimed=save.milestonesClaimed[m.id];
+    const done=v>=m.goal;
+    const pct=Math.min(1,v/m.goal)*100;
+    const div=document.createElement('div');
+    div.style.cssText=`background:${claimed?'rgba(0,100,30,.12)':done?'rgba(0,180,60,.08)':'rgba(10,12,30,1)'};border:1px solid ${claimed?'#1a4a1a':done?'#2a6a30':'#1a1f3a'};border-radius:8px;padding:10px 12px;display:flex;align-items:center;gap:10px;${done&&!claimed?'box-shadow:0 0 8px rgba(0,200,80,.2);':''}`;
+    div.innerHTML=`<span style="font-size:1.4rem;flex-shrink:0">${m.icon}</span>
+      <div style="flex:1;min-width:0">
+        <div style="font-family:'Bangers';color:${claimed?'#00cc44':done?'#00ff88':'#c0c8d0'};font-size:.92rem;letter-spacing:.5px">${m.name}</div>
+        <div style="color:#445;font-size:.7rem;margin-bottom:3px">${m.desc}</div>
+        <div style="height:3px;background:#0e1220;border-radius:2px;overflow:hidden"><div style="height:100%;width:${pct}%;background:${claimed?'#1a4a1a':done?'#00cc44':'#ff8c00'};border-radius:2px;transition:width .3s"></div></div>
+        <div style="color:#334;font-size:.65rem;margin-top:2px">${Math.min(v,m.goal).toLocaleString()} / ${m.goal.toLocaleString()}</div>
+      </div>
+      <div style="text-align:right;flex-shrink:0;min-width:52px">
+        <div style="color:#ffd700;font-family:'Bangens';font-size:.9rem;font-family:'Bangers'">+${m.reward}🪙</div>
+        ${claimed?'<div style="color:#1a5a1a;font-size:.65rem;font-family:Oswald;letter-spacing:1px">CLAIMED</div>':done?`<button class="ms-claim-btn" data-mid="${m.id}" style="background:rgba(0,80,20,.8);border:1px solid #00cc44;color:#00ff88;border-radius:5px;padding:3px 9px;cursor:pointer;font-family:'Bangers';font-size:.82rem;letter-spacing:1px;animation:milePulse 1.2s infinite">CLAIM</button>`:''}
+      </div>`;
+    list.appendChild(div);
+  });
+  modal.classList.add('show');
+  list.querySelectorAll('.ms-claim-btn').forEach(btn=>{
+    btn.onclick=()=>claimMilestone(btn.dataset.mid);
+  });
+}
+function closeMilestones(){document.getElementById('milestone-modal').classList.remove('show');}
 const LEVELS=Array.from({length:40},(_,i)=>mkLevel(i));
 
 function todayStr(){const d=new Date();return`${d.getFullYear()}-${d.getMonth()}-${d.getDate()}`;}
@@ -809,7 +968,10 @@ let waveStartLives=0; // lives at start of each wave
 let waveActive=false,spawnQ=[],spawnT=0,spawnTotal=0;
 let selType=null,ttTower=null,ttAX=0,ttAY=0;
 let curLv=0,gameSpeed=1,running=false,isDaily=false,isPaused=false,waveTimer=0,waveTimerMax=0;
-let abilityCDs={},surgeActive=0; // surgeActive = remaining surge seconds
+let abilityCDs={},surgeActive=0;
+let activeChallenge=null; // set when playing a challenge level
+let killStreak=0, killStreakTimer=0, killStreakMult=1;
+ // surgeActive = remaining surge seconds
 let mouseX=0,mouseY=0,shakeT=0,livesUpCount=0;
 let raf=0,lastTs=0;
 // Quest run trackers
@@ -1657,6 +1819,17 @@ function buildMap(){
       (done?'<div class="node-badge">✓</div>':'')+
       (lv.isBoss?'<div class="node-badge" style="bottom:-4px;right:-4px;top:auto;font-size:10px;color:#ff3d5a">⚡</div>':'')+
       `</div><div class="node-stars" style="color:${done?'#ffd700':'#1e2a40'}">${'★'.repeat(st)+'☆'.repeat(3-st)}</div>`;
+    // Challenge badge on node
+    const chForLv=CHALLENGES.filter(ch=>ch.lv===i+1&&ch.lv<=40);
+    if(chForLv.length>0&&unlocked){
+      const doneAll=chForLv.every(ch=>save.challengesDone&&save.challengesDone[ch.id]);
+      const badge=document.createElement('div');
+      badge.style.cssText=`position:absolute;top:-4px;left:-4px;width:14px;height:14px;border-radius:50%;background:${doneAll?'#00cc44':'#ff8c00'};display:flex;align-items:center;justify-content:center;font-size:7px;z-index:2;box-shadow:0 0 4px ${doneAll?'#00cc44':'#ff8c00'};`;
+      badge.textContent='⚔';
+      badge.title=chForLv.map(ch=>ch.name).join(', ');
+      wrap.querySelector('.node').style.position='relative';
+      wrap.querySelector('.node').appendChild(badge);
+    }
     g.appendChild(wrap);
   }
   document.getElementById('ms-ul').textContent=save.ul;
@@ -1697,7 +1870,7 @@ function showScreen(id){
   document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
   document.getElementById(id).classList.add('active');
 }
-function goMap(){running=false;cancelAnimationFrame(raf);buildMap();showScreen('s-map');}
+function goMap(){running=false;cancelAnimationFrame(raf);activeChallenge=null;const b=document.getElementById('challenge-banner');if(b)b.style.display='none';buildMap();showScreen('s-map');}
 
 // ══════════════════════════════════════
 //  START LEVEL
@@ -1705,6 +1878,13 @@ function goMap(){running=false;cancelAnimationFrame(raf);buildMap();showScreen('
 function startLv(idx){
   curLv=idx;
   const lv=LEVELS[idx];
+  // Update challenge banner
+  const banner=document.getElementById('challenge-banner');
+  const bannerTxt=document.getElementById('ch-banner-txt');
+  if(banner&&bannerTxt){
+    if(activeChallenge){banner.style.display='';bannerTxt.textContent=`${activeChallenge.name.toUpperCase()} — ${activeChallenge.reqName}`;}
+    else banner.style.display='none';
+  }
   const bonusLives=SBONUSES.extraLives();
   gold=lv.startGold+SBONUSES.startBonus();
   lives=lv.startLives+bonusLives;
@@ -1905,7 +2085,20 @@ CV.addEventListener('click',e=>{
   if(rr<0||rr>=ROWS||cc<0||cc>=COLS)return;
   if(!GRID[rr]||GRID[rr][cc]!==0){if(PGRID.has(rr+','+cc))notify('Path — cannot build here','#ff3d5a');return;}
   const def=TDEFS[selType];if(!def)return;
+  if(activeChallenge){
+    if(activeChallenge.req&&!activeChallenge.req.includes(selType)){
+      notify(`❌ Challenge: ${activeChallenge.reqName} only!`,'#ff3d5a');return;
+    }
+    if(activeChallenge.maxTowers!==undefined&&towers.length>=activeChallenge.maxTowers){
+      notify(`❌ Challenge: Max ${activeChallenge.maxTowers} towers only!`,'#ff3d5a');return;
+    }
+  }
   if(gold<def.cost){notify('Not enough gold! 💰','#ff3d5a');return;}
+  if(activeChallenge&&activeChallenge.maxGold!==undefined){
+    const spent=(activeChallenge._spent||0)+def.cost;
+    if(spent>activeChallenge.maxGold){notify(`❌ War Economy: max ${activeChallenge.maxGold}g budget!`,'#ff3d5a');return;}
+    activeChallenge._spent=spent;
+  }
   gold-=def.cost;GRID[rr][cc]=2;
   towers.push({r:rr,c:cc,x:cc*CELL+CELL/2,y:rr*CELL+CELL/2,ttype:selType,
     dmg:def.dmg,rng:def.rng,rte:def.rte,splR:def.splR,slw:def.slw,
@@ -1939,9 +2132,17 @@ function updateTTContent(){
   document.getElementById('tt-max').style.display=maxed?'block':'none';
   const upbtn=document.getElementById('tt-upbtn');upbtn.style.display=maxed?'none':'block';
   if(!maxed){document.getElementById('tt-uname').textContent=`▲ ${nxt.n}`;document.getElementById('tt-ucost').textContent=`Cost: ${nxt.c}💰`;upbtn.textContent=`⬆ ${nxt.n} (${nxt.c}💰)`;upbtn.disabled=gold<nxt.c;}
-  document.getElementById('tt-sellbtn').textContent=`💸 Sell (+${sellVal(ttTower)}💰)`;
+  const _midWave=waveActive;
+  const _esv=Math.floor(sellVal(ttTower)*(waveActive?.67:1));
+  const _sellBtn=document.getElementById('tt-sellbtn');
+  _sellBtn.textContent=waveActive?`⚠ EMERGENCY SELL (+${_esv}💰)`:` 💸 Sell (+${sellVal(ttTower)}💰)`;
+  _sellBtn.style.background=waveActive?'rgba(255,50,0,.18)':'rgba(255,140,0,.1)';
+  _sellBtn.style.borderColor=waveActive?'#ff3300':'#ff8c00';
+  _sellBtn.style.color=waveActive?'#ff4422':'#ff8c00';
   document.getElementById('tt-prio-lbl').textContent={first:'First',last:'Last',strong:'Strongest',weak:'Weakest'}[ttTower.priority||'first'];
   document.querySelectorAll('.tt-pb').forEach(b=>b.classList.toggle('on',b.textContent.toLowerCase().startsWith((ttTower.priority||'first').slice(0,4))));
+  const _lb=document.getElementById('tt-lockbtn');
+  if(_lb){_lb.textContent=ttTower.aimLocked?'🔒 AIM LOCKED':'🔓 LOCK AIM';_lb.style.borderColor=ttTower.aimLocked?'#ffaa00':'#4444aa';_lb.style.color=ttTower.aimLocked?'#ffaa00':'#8888ff';_lb.style.background=ttTower.aimLocked?'rgba(255,170,0,.15)':'rgba(100,100,255,.1)';}
 }
 function posTT(tt){
   const w=178,h=tt.offsetHeight||240;
@@ -1951,21 +2152,40 @@ function posTT(tt){
   tt.style.left=tx+'px';tt.style.top=ty+'px';
 }
 function ttClose(){ttTower=null;document.getElementById('tower-tooltip').classList.remove('show');}
+function ttToggleLock(){
+  if(!ttTower)return;
+  ttTower.aimLocked=!ttTower.aimLocked;
+  const btn=document.getElementById('tt-lockbtn');
+  if(btn){btn.textContent=ttTower.aimLocked?'🔒 AIM LOCKED':'🔓 LOCK AIM';btn.style.borderColor=ttTower.aimLocked?'#ffaa00':'#4444aa';btn.style.color=ttTower.aimLocked?'#ffaa00':'#8888ff';btn.style.background=ttTower.aimLocked?'rgba(255,170,0,.15)':'rgba(100,100,255,.1)';}
+  notify(ttTower.aimLocked?'🔒 Aim locked — tower will hold direction':'🔓 Aim unlocked',ttTower.aimLocked?'#ffaa00':'#8888ff');
+}
 function setPrio(p){if(!ttTower)return;ttTower.priority=p;updateTTContent();}
 function ttUpgrade(){
-  if(!ttTower)return;const ups=TUPG[ttTower.ttype];if(ttTower.upgradeLevel>=ups.length)return;
+  if(!ttTower)return;
+  if(activeChallenge&&activeChallenge.noUpgrade){notify('❌ Raw Power — no upgrades allowed!','#ff3d5a');return;}
+  const ups=TUPG[ttTower.ttype];if(ttTower.upgradeLevel>=ups.length)return;
   const nxt=ups[ttTower.upgradeLevel];if(gold<nxt.c){notify('Not enough gold!','#ff3d5a');return;}
+  if(activeChallenge&&activeChallenge.maxGold!==undefined){
+    const spent=(activeChallenge._spent||0)+nxt.c;
+    if(spent>activeChallenge.maxGold){notify(`❌ War Economy: max ${activeChallenge.maxGold}g budget!`,'#ff3d5a');return;}
+    activeChallenge._spent=spent;
+  }
   gold-=nxt.c;ttTower.upgradeLevel++;
   if(nxt.dmg!==undefined)ttTower.dmg=nxt.dmg;if(nxt.rng!==undefined)ttTower.rng=nxt.rng;
   if(nxt.rte!==undefined)ttTower.rte=nxt.rte;if(nxt.slw!==undefined)ttTower.slw=nxt.slw;
-  runUpgrades++;addQuestProgress('upg1');
+  runUpgrades++;addQuestProgress('upg1');mStat('totalUpgrades');
   notify(`${TDEFS[ttTower.ttype].icon} ${nxt.n}!`,ttTower.col);updateTTContent();updateHUD();
 }
 function ttSell(){
-  if(!ttTower)return;const v=sellVal(ttTower);gold+=v;GRID[ttTower.r][ttTower.c]=0;
+  if(!ttTower)return;
+  if(activeChallenge&&activeChallenge.noSell){notify('❌ No Refunds challenge — selling disabled!','#ff3d5a');return;}
+  const mult=waveActive?.67:1;
+  const v=Math.floor(sellVal(ttTower)*mult);
+  gold+=v;GRID[ttTower.r][ttTower.c]=0;
   towers=towers.filter(t=>t!==ttTower);
-  runSells++;addQuestProgress('sell1');
-  notify('Sold for '+v+'💰','#ffd700');ttClose();updateHUD();
+  runSells++;addQuestProgress('sell1');mStat('totalSells');
+  notify(waveActive?`⚠ Emergency sold! +${v}💰 (40%)`:`Sold for ${v}💰`,'#ffd700');
+  ttClose();updateHUD();
 }
 function sellVal(t){return Math.floor((TDEFS[t.ttype].cost+TUPG[t.ttype].slice(0,t.upgradeLevel).reduce((s,u)=>s+u.c,0))*.6);}
 
@@ -1973,6 +2193,7 @@ function sellVal(t){return Math.floor((TDEFS[t.ttype].cost+TUPG[t.ttype].slice(0
 //  WAVE
 // ══════════════════════════════════════
 function sendWave(){
+  killStreak=0;killStreakTimer=0;
   const lv=LEVELS[curLv];if(waveActive||wave>=lv.waveCount)return;
   waveStartLives=lives;
   // Early wave bonus gold
@@ -2027,6 +2248,9 @@ function update(dt){
     }
   }
 
+  // Kill streak decay
+  if(killStreakTimer>0){killStreakTimer-=dt;if(killStreakTimer<=0){if(killStreak>=5){floats.push({x:CW*.5,y:CH*.35,txt:'💨 Streak lost',col:'#aaa',life:1,sz:10});}killStreak=0;killStreakMult=1;updateHUD();}
+  {const _sd=document.getElementById('hud-streak');if(_sd){if(killStreak>=5){_sd.textContent='🔥 ×'+killStreak;_sd.style.display='';}else _sd.style.display='none';}}}
   // Boss bar
   const bosses=enemies.filter(e=>!e.dead&&(e.type==='boss'||e.type==='megaboss'||e.type==='teleboss'));
   const bbar=document.getElementById('boss-bar');
@@ -2071,7 +2295,9 @@ function update(dt){
     }
     moveEnemy(en,dt);
     const path=en.pathB?PATH2:PATH;
-    if(en.pathIdx>=(path.length||PATH.length)){lives=Math.max(0,lives-en.liveCost);en.dead=true;shakeT=.35;document.getElementById('hv-li').style.animation='none';setTimeout(()=>document.getElementById('hv-li').style.animation='',10);updateHUD();if(lives<=0){endGame();return;}}
+    if(en.pathIdx>=(path.length||PATH.length)){if(activeChallenge)activeChallenge._livesLost=(activeChallenge._livesLost||0)+en.liveCost;
+lives=Math.max(0,lives-en.liveCost);en.dead=true;shakeT=.35;
+      killStreak=0;killStreakMult=1;{const _sd=document.getElementById('hud-streak');if(_sd)_sd.style.display='none';}document.getElementById('hv-li').style.animation='none';setTimeout(()=>document.getElementById('hv-li').style.animation='',10);updateHUD();if(lives<=0){endGame();return;}}
   }
 
   // ── Warden: buff nearby towers passively ──
@@ -2099,7 +2325,7 @@ function update(dt){
     tw.cd=Math.max(0,tw.cd-dt*surgeRteMult);if(tw.cd>0)continue;
     const tgt=getTarget(tw);if(!tgt)continue;
     tw.cd=1/(tw.rte*SBONUSES.rteMult());
-    tw.aimA=Math.atan2(tgt.y-tw.y,tgt.x-tw.x);
+    if(!tw.aimLocked)tw.aimA=Math.atan2(tgt.y-tw.y,tgt.x-tw.x);
     if(tw.ttype==='phantom'){firePierce(tw,tgt);}
     else spawnProj(tw,tgt);
   }
@@ -2145,7 +2371,7 @@ notify('🎯 OVERWATCH — TARGET ACQUIRED!','#ff4466');
       if(atk===tw)continue;
       if(atk.ttype==='warden'||atk.ttype==='chrono'||atk.ttype==='overwatch')continue;
       if(!best||best.dead)break;
-      atk.aimA=Math.atan2(best.y-atk.y,best.x-atk.x);
+      if(!atk.aimLocked)atk.aimA=Math.atan2(best.y-atk.y,best.x-atk.x);
       // Bypass cooldown for this shot
       if(atk.ttype==='phantom'){
         // Pierce fires along the line to marked target
@@ -2184,7 +2410,7 @@ notify('🎯 OVERWATCH — TARGET ACQUIRED!','#ff4466');
   if(waveActive&&spawnQ.length===0&&enemies.length===0){
     waveActive=false;
     const lv=LEVELS[curLv];
-    gold+=lv.goldReward;
+    gold+=lv.goldReward;if(gold>(save.mstats&&save.mstats.bestGold||0)){if(!save.mstats)save.mstats={};save.mstats.bestGold=gold;checkMilestones();}
     // Adaptive difficulty: if player took no damage this wave AND wave>=3, escalate
     if(lives>=waveStartLives&&wave>=2){
       adaptMult=Math.min(3.0, adaptMult+0.28);
@@ -2193,7 +2419,7 @@ notify('🎯 OVERWATCH — TARGET ACQUIRED!','#ff4466');
     } else if(lives<waveStartLives){
       adaptMult=Math.max(1.0, adaptMult-0.05);
     }
-    notify(`Wave ${wave} cleared! +${lv.goldReward}💰`,'#00ff88');updateHUD();
+    notify(`Wave ${wave} cleared! +${lv.goldReward}💰`,'#00ff88');updateHUD();mStat('totalWaves');
     if(wave>=lv.waveCount){
       setTimeout(()=>levelWin(),900);
     } else {
@@ -2360,7 +2586,15 @@ function killEnemy(en){
   gold+=rwd;score+=rwd*5;updateHUD();
   for(let i=0;i<10;i++){const a=Math.random()*Math.PI*2,s=40+Math.random()*80;parts.push({x:en.x,y:en.y,vx:Math.cos(a)*s,vy:Math.sin(a)*s-50,col:en.col,life:.6+Math.random()*.4,sz:2+Math.random()*en.sz*.35});}
   floats.push({x:en.x,y:en.y-en.sz-8,txt:'+'+rwd+'💰',col:'#ffd700',life:1,sz:11});
-  runKills++;addQuestProgress('kill1');addQuestProgress('gold',rwd);
+  runKills++;addQuestProgress('kill1');addQuestProgress('gold',rwd);mStat('totalKills');
+  if(en.type==='boss'||en.type==='teleboss'||en.type==='megaboss')mStat('totalBosses');
+  // Kill streak
+  killStreak++;killStreakTimer=2.5;
+  if(killStreak===5)  {killStreakMult=1.2;floats.push({x:en.x,y:en.y-30,txt:'🔥 STREAK x5!',col:'#ff8c00',life:1.4,sz:12});}
+  else if(killStreak===10){killStreakMult=1.5;floats.push({x:en.x,y:en.y-30,txt:'💥 STREAK x10!',col:'#ff4400',life:1.6,sz:14});}
+  else if(killStreak===20){killStreakMult=2.0;floats.push({x:en.x,y:en.y-30,txt:'☠ STREAK x20!!',col:'#ff0044',life:1.8,sz:16});}
+  if(killStreak>=5){const bonus=Math.ceil(rwd*(killStreakMult-1));if(bonus>0){gold+=bonus;floats.push({x:en.x+12,y:en.y-en.sz-8,txt:'+'+bonus+'💰🔥',col:'#ff8844',life:1,sz:9});}}
+  if(en.type==='boss'||en.type==='teleboss'||en.type==='megaboss')mStat('totalBosses');
   // Grant XP to all towers in range that could have hit this enemy
   grantTowerXP(en);
   // Split into armored variants
@@ -2867,6 +3101,7 @@ function showPrestige(){
 function closePrestige(){document.getElementById('prestige-modal').style.display='none';}
 function doPrestige(){
   save.prestigeCount=(save.prestigeCount||0)+1;
+  mStat('totalPrestige');
   save.prestigeDmgBonus=(save.prestigeCount)*0.10;
   // Reset progress but keep tokens and shop
   save.ul=1;save.stars={};
@@ -2887,7 +3122,14 @@ function levelWin(){
   if(endlessMode){
     endlessWave++;
     if(save.endlessBest===undefined||endlessWave-1>save.endlessBest){
-      save.endlessBest=endlessWave-1;writeSave();
+      save.endlessBest=endlessWave-1;
+      if(!save.mstats)save.mstats={};
+      save.mstats.bestEndless=Math.max(save.mstats.bestEndless||0,endlessWave-1);
+      checkMilestones();
+      writeSave();
+    }
+    if(activeChallenge&&activeChallenge.endlessGoal&&endlessWave>=activeChallenge.endlessGoal){
+      checkChallengeWin();
     }
     const tok=endlessWave%5===0?2:0; // bonus tokens every 5 waves
     if(tok){save.tokens=(save.tokens||0)+tok;writeSave();}
@@ -2911,6 +3153,7 @@ function levelWin(){
     return;
   }
   // ── NORMAL MODE ──
+  checkChallengeWin();
   const sl=LEVELS[curLv].startLives+SBONUSES.extraLives();
   const st=lives>=sl*.8?3:lives>=sl*.4?2:1;
   let tokEarned=1;
@@ -2920,7 +3163,7 @@ function levelWin(){
   if(curLv+2<=40&&curLv+2>save.ul)save.ul=curLv+2;
   // Unlock endless after beating lv 30
   if(curLv===39&&save.ul<=40)save.ul=41;
-  save.ts=(save.ts||0)+score;save.hi=Math.max(save.hi||0,score);
+  save.ts=(save.ts||0)+score;save.hi=Math.max(save.hi||0,score);mStat('totalLevels');
   save.tokens=(save.tokens||0)+tokEarned;
   writeSave();
   addQuestProgress('win');
@@ -2936,6 +3179,12 @@ function levelWin(){
 }
 
 function endGame(){
+  if(activeChallenge){
+    const ch=activeChallenge;
+    activeChallenge=null;
+    notify(`❌ Challenge failed: ${ch.name}`,'#ff3d5a');
+  }
+  killStreak=0;killStreakMult=1;killStreakTimer=0;
   running=false;
   if(endlessMode){
     const survived=endlessWave-1;
@@ -2972,6 +3221,9 @@ function updateHUD(){
   const lv=LEVELS[curLv];
   document.getElementById('h-lv').textContent=endlessMode?'∞':curLv+1;
   document.getElementById('hud-title').textContent=endlessMode?`W${endlessWave}`:'TD2';
+  const htEl=document.getElementById('hud-title');
+  if(killStreak>=5){htEl.textContent=(killStreak>=20?'☠ x20':killStreak>=10?'💥 x10':'🔥 x5')+` STREAK`;htEl.style.color=killStreak>=20?'#ff0044':killStreak>=10?'#ff4400':'#ff8c00';}
+  else{htEl.textContent=endlessMode?`W${endlessWave}`:'TD2';htEl.style.color='#ff8c00';}
   document.getElementById('h-wv').textContent=wave;
   document.getElementById('h-mw').textContent=lv.waveCount;
   document.getElementById('h-li').textContent=lives;
@@ -2980,6 +3232,30 @@ function updateHUD(){
   document.getElementById('hv-li').classList.toggle('warn',lives<=5);
   document.getElementById('livebtn').disabled=livesUpCount>=5||waveActive;
   if(ttTower)updateTTContent();
+  // Challenge banner
+  const cb=document.getElementById('challenge-banner');
+  if(cb){
+    if(activeChallenge&&running){
+      cb.style.display='flex';
+      document.getElementById('ch-banner-icon').textContent=activeChallenge.icon||'⚔️';
+      document.getElementById('ch-banner-name').textContent=activeChallenge.name;
+      document.getElementById('ch-banner-rule').textContent='— '+activeChallenge.reqName;
+      if(activeChallenge.speedRun&&activeChallenge._startTime){
+        const elapsed=(Date.now()-activeChallenge._startTime)/1000;
+        const left=Math.max(0,activeChallenge.speedRun-elapsed);
+        const el=document.getElementById('ch-banner-timer');
+        el.textContent=`⏱ ${Math.floor(left/60)}:${String(Math.floor(left%60)).padStart(2,'0')}`;
+        el.style.color=left<30?'#ff3300':left<60?'#ff8800':'#ffaa00';
+      } else {document.getElementById('ch-banner-timer').textContent='';}
+      // Adjust ability strip top if both showing
+      const astrip=document.getElementById('ability-strip');
+      if(astrip&&astrip.style.display==='flex')astrip.style.top='76px';
+    } else {
+      cb.style.display='none';
+      const astrip=document.getElementById('ability-strip');
+      if(astrip)astrip.style.top='50px';
+    }
+  }
 }
 
 // ══════════════════════════════════════
@@ -3160,11 +3436,13 @@ function buildGuideCombos(page){
 //  ABILITIES
 // ══════════════════════════════════════
 function useAbility(id){
+  if(activeChallenge&&activeChallenge.noAbility){notify('❌ Old School — abilities disabled!','#ff3d5a');return;}
   if(!running||isPaused)return;
   if(!save.abilities[id]){notify('Not purchased!','#ff3d5a');return;}
   if(abilityCDs[id]>0){notify(`⏳ ${Math.ceil(abilityCDs[id])}s cooldown`,'#ff8c00');return;}
   const ab=ABILITIES.find(a=>a.id===id);
   abilityCDs[id]=ab.cd;
+  mStat('totalAbilities');
   if(id==='freeze'){
     enemies.forEach(e=>{if(!e.dead){e.slow=0.98;e.frozenVis=true;e.frozenT=3.0;}});
     notify('❄️ DEEP FREEZE!','#44ddff');
@@ -3203,24 +3481,130 @@ function updateAbilityHUD(){
     const btn=document.getElementById('ab-'+ab.id);if(!btn)return;
     const cd=abilityCDs[ab.id]||0;
     const surge=ab.id==='surge'&&surgeActive>0;
-    btn.style.opacity=cd>0?'0.5':'1';
-    btn.style.boxShadow=surge?`0 0 12px ${ab.col}`:cd>0?'none':`0 0 6px ${ab.col}88`;
-    const lbl=btn.querySelector('.ab-cd');
-    if(lbl)lbl.textContent=cd>0?Math.ceil(cd)+'s':surge?Math.ceil(surgeActive)+'s active':'READY';
+    const ready=cd<=0&&!surge;
+    btn.style.opacity=cd>0?'0.55':'1';
+    btn.style.boxShadow=surge?`0 0 14px ${ab.col}`:ready?`0 0 7px ${ab.col}66`:'none';
+    const lbl=document.getElementById('abcd-'+ab.id);
+    if(lbl)lbl.textContent=cd>0?Math.ceil(cd)+'s':surge?`${Math.ceil(surgeActive)}s ⚡`:'READY';
+    if(lbl)lbl.style.color=cd>0?'#555':surge?ab.col:'#00ff88';
+    if(lbl)lbl.style.fontWeight=cd<=0?'bold':'normal';
+    const pieCanvas=document.getElementById('abpie-'+ab.id);
+    if(pieCanvas){
+      const ctx2=pieCanvas.getContext('2d');
+      const ab2=ABILITIES.find(a=>a.id===ab.id);
+      const progress=cd>0?(1-cd/ab2.cd):1;
+      ctx2.clearRect(0,0,26,26);
+      if(cd>0){
+        // dark overlay sweep
+        ctx2.beginPath();ctx2.moveTo(13,13);
+        ctx2.arc(13,13,13,-Math.PI/2,-Math.PI/2+2*Math.PI*(1-progress),false);
+        ctx2.closePath();ctx2.fillStyle='rgba(0,0,0,0.65)';ctx2.fill();
+        // ring
+        ctx2.beginPath();ctx2.arc(13,13,12,0,2*Math.PI);
+        ctx2.strokeStyle=ab2.col+'44';ctx2.lineWidth=1.5;ctx2.stroke();
+        // progress arc
+        ctx2.beginPath();ctx2.arc(13,13,12,-Math.PI/2,-Math.PI/2+2*Math.PI*progress,false);
+        ctx2.strokeStyle=ab2.col;ctx2.lineWidth=2;ctx2.stroke();
+      }
+    }
   });
 }
+
+
+function startChallenge(ch){
+  activeChallenge={...ch, _spent:0, _livesLost:0, _startTime:Date.now()};
+  notify(`🎯 ${ch.name} — ${ch.reqName}!`,'#ff8c00');
+  if(ch.endlessGoal){endlessMode=false;startEndless();}
+  else startLv(ch.lv-1);
+}
+
+function checkChallengeWin(){
+  if(!activeChallenge)return;
+  const ch=activeChallenge;
+  if(ch.bossOnly&&lives<(LEVELS[curLv].startLives+SBONUSES.extraLives())){
+    notify('💀 Boss Rush failed — no lives lost required!','#ff3d5a');
+    activeChallenge=null;return;
+  }
+  if(ch.noLivesLost&&(ch._livesLost||0)>0){
+    notify(`💔 Flawless failed — lost ${ch._livesLost} ${ch._livesLost===1?'life':'lives'}!`,'#ff3d5a');
+    activeChallenge=null;return;
+  }
+  if(ch.speedRun&&ch._startTime){
+    const elapsed=(Date.now()-ch._startTime)/1000;
+    if(elapsed>ch.speedRun){
+      notify(`⏱ Too slow! ${Math.floor(elapsed)}s — needed under ${ch.speedRun}s`,'#ff3d5a');
+      activeChallenge=null;return;
+    }
+  }
+  activeChallenge=null;
+  if(save.challengesDone[ch.id])return;
+  save.challengesDone[ch.id]=true;
+  save.tokens=(save.tokens||0)+ch.reward;
+  writeSave();
+  floats.push({x:CANVAS.width/2,y:CANVAS.height/2-30,txt:'🏆 CHALLENGE COMPLETE!',col:'#ffd700',life:3,sz:18});
+  notify(`🏆 ${ch.name} COMPLETE! +${ch.reward}🪙`,'#ffd700');
+}
+
+function openChallenges(){
+  const modal=document.getElementById('challenge-modal');if(!modal)return;
+  const list=document.getElementById('challenge-list');list.innerHTML='';
+  const sub=document.getElementById('ch-modal-sub');
+  if(sub){const d=CHALLENGES.filter(ch=>save.challengesDone[ch.id]).length;sub.textContent=`${d}/${CHALLENGES.length} completed — ${CHALLENGES.reduce((s,c)=>s+(save.challengesDone[c.id]?c.reward:0),0)}🪙 earned`;}
+  const cats=[
+    {key:'solo',    label:'⚔️ Solo Tower Runs',   col:'#ff8c00'},
+    {key:'combo',   label:'⚡ Synergy Combos',     col:'#bf5fff'},
+    {key:'restrict',label:'🔒 Restrictions',       col:'#ff4466'},
+    {key:'survive', label:'💎 Survival Runs',      col:'#44ddff'},
+  ];
+  cats.forEach(cat=>{
+    const catChs=CHALLENGES.filter(ch=>ch.cat===cat.key);
+    const header=document.createElement('div');
+    header.style.cssText=`font-family:'Bangers';color:${cat.col};font-size:.8rem;letter-spacing:3px;padding:6px 2px 3px;border-bottom:1px solid ${cat.col}22;margin-bottom:4px;margin-top:6px;`;
+    header.textContent=cat.label;
+    list.appendChild(header);
+    catChs.forEach(ch=>{
+      const done=save.challengesDone&&save.challengesDone[ch.id];
+      const unlocked=(save.ul||1)>ch.unlockAt;
+      const div=document.createElement('div');
+      div.style.cssText=`background:${done?'rgba(0,180,60,.07)':unlocked?'rgba(255,140,0,.04)':'rgba(0,0,0,.3)'};border:1px solid ${done?'#1a5a1a':unlocked?'#1e2a3a':'#111827'};border-radius:8px;padding:9px 12px;display:flex;align-items:center;gap:10px;opacity:${unlocked?1:0.45};transition:.12s;`;
+      div.innerHTML=`<span style="font-size:1.4rem;flex-shrink:0">${ch.icon}</span>
+        <div style="flex:1;min-width:0">
+          <div style="font-family:'Bangers';color:${done?'#00dd55':unlocked?cat.col:'#334'};font-size:.92rem;letter-spacing:.5px;display:flex;align-items:center;gap:5px">
+            ${ch.name}${done?'<span style="color:#00dd55;font-size:.7rem">✓ DONE</span>':''}
+          </div>
+          <div style="color:#4a5568;font-size:.72rem;line-height:1.3;margin-top:1px">${ch.desc}</div>
+          ${!unlocked?`<div style="color:#2a3444;font-size:.68rem;margin-top:2px">🔒 Reach level ${ch.unlockAt} first</div>`:''}
+          ${ch.cat==='restrict'&&unlocked&&!done?`<div style="color:${cat.col};font-size:.68rem;margin-top:2px;opacity:.7">📋 ${ch.reqName}</div>`:''}
+        </div>
+        <div style="text-align:right;flex-shrink:0;min-width:56px">
+          <div style="color:#ffd700;font-family:'Bangers';font-size:.95rem">+${ch.reward}🪙</div>
+          ${done?'<div style="color:#00dd55;font-size:.68rem;font-family:Oswald">CLAIMED</div>':unlocked?`<button class="ch-attempt-btn" data-chid="${ch.id}" style="background:rgba(0,40,20,.6);border:1px solid ${cat.col}66;color:${cat.col};border-radius:5px;padding:3px 9px;cursor:pointer;font-family:'Bangers';letter-spacing:1px;font-size:.82rem;margin-top:2px;transition:.1s">ATTEMPT</button>`:''}
+        </div>`;
+      list.appendChild(div);
+    });
+  });
+  const doneCount=CHALLENGES.filter(ch=>save.challengesDone&&save.challengesDone[ch.id]).length;
+  const cc=document.getElementById('ch-count');if(cc)cc.textContent=`${doneCount}/${CHALLENGES.length} done`;
+  modal.classList.add('show');
+  list.querySelectorAll('.ch-attempt-btn').forEach(btn=>{
+    btn.onclick=()=>{const ch=CHALLENGES.find(x=>x.id===btn.dataset.chid);if(ch){closeChallenges();startChallenge(ch);}};
+  });
+}
+function closeChallenges(){document.getElementById('challenge-modal').classList.remove('show');}
 
 function buildAbilityBar(){
   const wrap=document.getElementById('ability-bar');if(!wrap)return;
   wrap.innerHTML='';
+  const strip=document.getElementById('ability-strip');
   const owned=ABILITIES.filter(ab=>save.abilities[ab.id]);
-  if(!owned.length){wrap.style.display='none';return;}
-  wrap.style.display='flex';
+  if(!owned.length){if(strip)strip.style.display='none';return;}
+  if(strip)strip.style.display='flex';
   owned.forEach(ab=>{
     const btn=document.createElement('button');
     btn.id='ab-'+ab.id;btn.className='ability-btn';
     btn.style.cssText=`border:1px solid ${ab.col}88;color:${ab.col};background:rgba(0,0,0,.7);`;
-    btn.innerHTML=`<span style="font-size:1.1rem">${ab.icon}</span><span class="ab-name">${ab.name}</span><span class="ab-cd">READY</span>`;
+    btn.innerHTML=`<div class="ab-icon-wrap"><canvas id="abpie-${ab.id}" width="26" height="26"></canvas><span class="ab-icon-emoji">${ab.icon}</span></div><span class="ab-name">${ab.name}</span><span class="ab-cd" id="abcd-${ab.id}">READY</span>`;
+    btn.style.position='relative';btn.style.overflow='hidden';
     btn.onclick=()=>useAbility(ab.id);
     wrap.appendChild(btn);
   });
@@ -3228,7 +3612,41 @@ function buildAbilityBar(){
 
 
 checkQuestReset();
-buildMap();
+buildMap();checkMilestones();
+(function(){
+  const done=CHALLENGES.filter(ch=>save.challengesDone&&save.challengesDone[ch.id]).length;
+  const badge=document.getElementById('ch-map-badge');
+  if(badge){badge.textContent=done+'/'+CHALLENGES.length;badge.style.display='';}
+  // also update milestone badge properly
+  if(!save.mstats)return;
+  let anyReady=false;
+  MILESTONES.forEach(m=>{if(!save.milestonesClaimed[m.id]&&(save.mstats[m.stat]||0)>=m.goal)anyReady=true;});
+  const mb=document.getElementById('milestone-badge');
+  if(mb)mb.style.display=anyReady?'':'none';
+})();
 </script>
+
+<!-- MILESTONE MODAL -->
+<div class="modal-bg" id="milestone-modal">
+  <div style="max-width:540px;width:95%;background:#0a0d1e;border:2px solid #ffd700;border-radius:14px;padding:20px;max-height:85vh;display:flex;flex-direction:column;">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;">
+      <h2 style="color:#ffd700;margin:0;font-family:'Bangers';font-size:1.4rem;letter-spacing:2px;">🏅 MILESTONES</h2>
+      <button onclick="closeMilestones()" style="background:none;border:1px solid #333;color:#888;border-radius:6px;padding:4px 10px;cursor:pointer;">✕</button>
+    </div>
+    <div id="milestone-list" style="overflow-y:auto;display:flex;flex-direction:column;gap:6px;flex:1;"></div>
+  </div>
+</div>
+
+<!-- CHALLENGE MODAL -->
+<div class="modal-bg" id="challenge-modal">
+  <div style="max-width:560px;width:95%;background:#0a0d1e;border:2px solid #ff8c00;border-radius:14px;padding:20px;max-height:85vh;display:flex;flex-direction:column;">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;">
+      <div style="display:flex;align-items:baseline;gap:10px"><div><h2 style="color:#ff8c00;margin:0;font-family:'Bangers';font-size:1.4rem;letter-spacing:2px;">⚔️ TOWER CHALLENGES</h2><div id="ch-modal-sub" style="color:#445;font-size:.72rem;font-family:Oswald"></div></div><span id="ch-count" style="font-size:.75rem;color:#664422;font-family:Oswald"></span></div>
+      <button onclick="closeChallenges()" style="background:none;border:1px solid #333;color:#888;border-radius:6px;padding:4px 10px;cursor:pointer;">✕</button>
+    </div>
+    <div id="challenge-list" style="overflow-y:auto;display:flex;flex-direction:column;gap:8px;flex:1;"></div>
+  </div>
+</div>
+
 </body>
 </html>
